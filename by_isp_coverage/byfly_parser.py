@@ -3,7 +3,7 @@ import json
 import requests
 from bs4 import BeautifulSoup as bs
 
-from point import Point
+from .point import Point
 
 
 class ByflyParser(object):

@@ -2,7 +2,7 @@ import re
 
 import requests
 
-from point import Point
+from .point import Point
 
 
 class MTS_Parser(object):
