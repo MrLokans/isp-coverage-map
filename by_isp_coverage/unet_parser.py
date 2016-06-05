@@ -1,8 +1,9 @@
+import os
 import re
 import json
 from queue import Queue
 
-from geopy.geocoders import GoogleV3
+from geopy.geocoders import Yandex
 
 from lxml.html import fromstring
 import grequests
@@ -82,48 +83,74 @@ class UNETParser(object):
         links = tree.xpath('//a/text()')
         return links
 
+    def _read_cache_from_file(self,
+                              cache_file="results.txt",
+                              cache_splitter="|"):
+        if not os.path.exists(cache_file):
+            return {}
+        cache = {}
+
+        with open(cache_file, encoding="utf-8") as fp:
+            for line in fp:
+                search_str, point_part = line.split(cache_splitter)
+                # Generally very bad idea
+                cache[search_str] = eval(point_part)
+        return cache
+
     def get_points(self, json_file=None):
-        geolocator = GoogleV3()
+        geolocator = Yandex()
 
         to_process = Queue()
         results = Queue()
 
-        with open("results.txt", "w", encoding="utf-8") as f:
-            points = []
-            data = {}
-            # If no file specified we grab all the data from the web site
-            if json_file is None:
-                print("Collecting streets.")
-                streets = self.get_all_connected_streets()
-                print("Collecting house numbers.")
-                houses = [{s[1]: self.houses_with_connection_on_street(s)}
-                          for s in streets]
-                with open("unet_output.json", "w", encoding="utf-8") as fp:
-                    data = {"houses": houses}
-                    json.dump(data, fp)
-            # Otherwise use existing
-            else:
-                data = json.load(open(json_file, encoding="utf-8"))
-            city = "Минск"
-            for street in data["houses"]:
-                name = list(street.keys())[0]
-                houses = street[name]
-                for house in houses:
-                    search_str = " ".join([city, name, house])
-                    to_process.put(search_str)
+        cache = self._read_cache_from_file()
+
+        points = []
+        data = {}
+        # If no file specified we grab all the data from the web site
+        if json_file is None:
+            print("Collecting streets.")
+            streets = self.get_all_connected_streets()
+            print("Collecting house numbers.")
+            houses = [{s[1]: self.houses_with_connection_on_street(s)}
+                      for s in streets]
+            print("Dumping data to JSON.")
+            with open("unet_output.json", "w", encoding="utf-8") as fp:
+                data = {"houses": houses}
+                json.dump(data, fp)
+        # Otherwise use existing
+        else:
+            data = json.load(open(json_file, encoding="utf-8"))
+        city = "Минск"
+        for street in data["houses"]:
+            name = list(street.keys())[0]
+            houses = street[name]
+            for house in houses:
+                search_str = " ".join([city, name, house])
+                to_process.put(search_str)
+        with open("results.txt", "a+", encoding="utf-8") as f:
             while True:
+                if to_process.empty():
+                    break
                 # It's better to use threading later
                 search_str = to_process.get()
                 if search_str is None:
                     break
                 print("Looking for {}".format(search_str))
-                location = geolocator.geocode(search_str)
-                point = Point(longitude=location.longitude,
-                              latitude=location.latitude,
-                              description="")
-                # Caching results in file
-                f.write(str(point) + "\n")
-                points.append(point)
+                if search_str in cache:
+                    print("Using cached value.")
+                    point = cache[search_str]
+                    # to_process.task_done()
+                    points.append(point)
+                else:
+                    location = geolocator.geocode(search_str)
+                    point = Point(longitude=location.longitude,
+                                  latitude=location.latitude,
+                                  description="")
+                    # Caching results in file
+                    f.write(search_str + "|" + str(point) + "\n")
+                    # to_process.task_done()
+                    points.append(point)
             return points
 
 if __name__ == '__main__':
