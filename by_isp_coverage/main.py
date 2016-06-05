@@ -2,6 +2,7 @@ import argparse
 
 from .byfly_parser import ByflyParser
 from .mts_parser import MTS_Parser
+from .unet_parser import UNETParser
 
 from .csv_exporter import CSV_Exporter
 
@@ -16,7 +17,7 @@ def parse_args():
 
 
 def get_parsers():
-    return [ByflyParser, MTS_Parser]
+    return [ByflyParser, MTS_Parser, UNETParser]
 
 
 def get_parser_by_name(parsers, name):

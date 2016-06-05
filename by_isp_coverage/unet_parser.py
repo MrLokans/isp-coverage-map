@@ -7,7 +7,7 @@ from geopy.geocoders import GoogleV3
 from lxml.html import fromstring
 import grequests
 
-from point import Point
+from .point import Point
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -102,8 +102,8 @@ class UNETParser(object):
                     data = {"houses": houses}
                     json.dump(data, fp)
             # Otherwise use existing
-            data = json.load(open(json_file, encoding="utf-8"))
-            pass
+            else:
+                data = json.load(open(json_file, encoding="utf-8"))
             city = "Минск"
             for street in data["houses"]:
                 name = list(street.keys())[0]
