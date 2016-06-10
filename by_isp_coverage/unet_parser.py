@@ -8,13 +8,14 @@ from geopy.geocoders import Yandex
 from lxml.html import fromstring
 import grequests
 
+from .base import BaseParser
 from .point import Point
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
 
 
-class UNETParser(object):
+class UNETParser(BaseParser):
     PARSER_NAME = "UNET"
     BASE_URL = "http://unet.by"
 

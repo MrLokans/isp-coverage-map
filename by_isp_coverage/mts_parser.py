@@ -2,10 +2,11 @@ import re
 
 import requests
 
+from .base import BaseParser
 from .point import Point
 
 
-class MTS_Parser(object):
+class MTS_Parser(BaseParser):
     PARSER_NAME = "MTS"
     MTS_MAP_URL = "http://www.mts.by/home/connect/"
     YA_MAPS_POINT_REGEX = r"var placemark(?P<id>[\d]+) = new YMaps.Placemark\(new YMaps\.GeoPoint\((?P<long>[\d]+\.[\d]+),(?P<lat>[\d]+\.[\d]+)"

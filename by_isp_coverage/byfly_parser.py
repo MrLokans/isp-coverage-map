@@ -3,10 +3,11 @@ import json
 import requests
 from bs4 import BeautifulSoup as bs
 
+from .base import BaseParser
 from .point import Point
 
 
-class ByflyParser(object):
+class ByflyParser(BaseParser):
     PARSER_NAME = "byfly"
     BYFLY_MAP_URL = "http://byfly.by/karta-x-pon"
     MAP_SCRIPT_INDEX = 16
