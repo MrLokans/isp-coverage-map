@@ -15,15 +15,26 @@ class AtlantParser(object):
     def get_points(self):
         return []
 
+    def _generate_search_url(self, l):
+        return "/".join((self.STREET_SEARCH_URL, l))
+
     def get_street_names(self):
         """Obtain all streets with available internet connection"""
         street_names = []
         ltrs = "0123456789абвгдеёжзийклмнопрстуфхцчшщэюя"
-        urls = ("/".join([self.STREET_SEARCH_URL, l]) for l in ltrs)
-        rs = (grequests.get(u) for u in urls)
-        results = grequests.map(rs)
-        for r in results:
-            street_names.extend(r.json())
+        urls = (self._generate_search_url(l) for l in ltrs)
+
+        # Asyncronous code causes some results not being returned by API
+        # rs = (grequests.get(u) for u in urls)
+        # results = grequests.map(rs)
+        results = [requests.get(u) for u in urls]
+        for i, r in enumerate(results):
+            try:
+                dict_data = r.json()
+                street_names.extend(dict_data)
+            except AttributeError:
+                msg = "Error retrieving data for letter {}. ({})"
+                print(msg.format(ltrs[i], self._generate_search_url(ltrs[i])))
         return street_names
 
     def get_house_list_for_street(self, street_name):
@@ -32,9 +43,9 @@ class AtlantParser(object):
 
 def main():
     parser = AtlantParser()
-    points = parser.get_points()
-    points = parser.get_street_names()
-    print(points)
+    # points = parser.get_points()
+    streets = parser.get_street_names()
+    print(streets)
 
 
 if __name__ == '__main__':
