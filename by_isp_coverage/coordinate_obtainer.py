@@ -10,7 +10,7 @@ class RedisCache(object):
     """This class implements caching interface
     for redis backend"""
 
-    def __init__(self, currency_cls, logger_name):
+    def __init__(self):
 
         prefs = {"host": "localhost",
                  "port": "6379",
@@ -39,12 +39,10 @@ class RedisCache(object):
 
 
 class CoordinateObtainer(object):
-    def __init__(self, name, street_data,
+    def __init__(self,
                  cache_class=RedisCache, locator_class=Yandex):
         # Street data is the list with the following structure:
         # [('Street name', [1, 2, 3, 4]), ...]
-        self.name = name
-        self.street_data = street_data
         self._cache = cache_class()
         self._locator = locator_class()
 
