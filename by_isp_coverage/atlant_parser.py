@@ -24,11 +24,22 @@ class AtlantParser(BaseParser):
 
     def _get_form_build_id(self):
         """Get form_build_id param value to make correct XHR requests"""
-        page_content = self._session.get(self.PARSER_URL).text
-        soup = bs(page_content, "html.parser")
+        # headers = {
+        #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        #     "Accept-Encoding": "gzip, deflate, sdch",
+        #     "Accept-Language": "ru,en-US;q=0.8,en;q=0.6,ja;q=0.4",
+        #     "Connection": "keep-alive",
+        #     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36",
+        #     "Upgrade-Insecure-Requests": "1",
+        #     "DNT": "1",
+        #     "Host": "telecom.by",
+        # }
+        # page_content = self._session.get(self.PARSER_URL, headers=headers).text
+        # soup = bs(page_content, "html.parser")
         # It does not work for some reason, may be we should set custom user-agent
-        input_ = soup.find(name="input", attrs={"name": "form_build_id"})
-        return input_["value"]
+        # input_ = soup.find(name="input", attrs={"name": "form_build_id"})
+        # return input_["value"]
+        return "form-xxGWMlRuGK58F5fJ9t0TsXhVUWloXeqzxzmeyya-h7A"
 
     def __extract_houses(self, text):
         soup = bs(text, "html.parser")
