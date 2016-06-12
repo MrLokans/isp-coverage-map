@@ -27,6 +27,7 @@ class RedisCache(object):
             item = self._connection.get(key)
             if item is None:
                 return None
+            item = item.decode('utf-8')
             long, lat = item.split('|')
             return long, lat
         except redis.exceptions.ConnectionError:
