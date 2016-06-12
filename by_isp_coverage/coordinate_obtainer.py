@@ -1,9 +1,13 @@
+import logging
 from queue import Queue
 
 import redis
 from geopy.geocoders import Yandex
 
 from .point import Point
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 class RedisCache(object):
@@ -14,7 +18,7 @@ class RedisCache(object):
 
         prefs = {"host": "localhost",
                  "port": "6379",
-                 "db": "geodata"}
+                 "db": "1"}
         self._connection = redis.StrictRedis(**prefs)
 
     def get_coordinate(self, street_name, house_number):
@@ -35,7 +39,8 @@ class RedisCache(object):
         try:
             self._connection.set(key, value)
         except redis.exceptions.ConnectionError:
-            pass
+            err_msg = "Error putting key {} with value {} into cache."
+            logger.error(err_msg.format(key, value), exc_info=True)
 
 
 class CoordinateObtainer(object):
@@ -74,19 +79,20 @@ class CoordinateObtainer(object):
                 point = Point(longitude=coord[0],
                               latitude=coord[1],
                               description="")
-                print("Cached value found: {}".format(point))
+                logger.debug("Cached value found: {}".format(point))
                 processed.put(point)
 
             else:
-                search_str = " ".join(["Минск", street_name, house_data])
+                search_str = " ".join(["Минск", street_name, house_number])
                 location = self._locator.geocode(search_str)
                 try:
                     point = Point(longitude=location.longitude,
                                   latitude=location.latitude,
                                   description="")
                     processed.put(point)
-                except Exception as e:
-                    print("While processing {} error occured: {}".format(str(e)))
+                except Exception:
+                    err_msg = "While processing {} error occured"
+                    logger.error(err_msg.format(search_str), exc_info=True)
         results = []
         while not processed.empty():
             results.append(processed.get())
