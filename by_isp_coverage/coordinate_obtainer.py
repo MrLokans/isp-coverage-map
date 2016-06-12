@@ -84,11 +84,16 @@ class CoordinateObtainer(object):
 
             else:
                 search_str = " ".join(["Минск", street_name, house_number])
-                location = self._locator.geocode(search_str)
+                logger.debug("Getting data about {}".format(search_str))
+
                 try:
+                    location = self._locator.geocode(search_str)
                     point = Point(longitude=location.longitude,
                                   latitude=location.latitude,
                                   description="")
+                    logger.debug("Putting {} in cache".format(search_str))
+                    self._cache.put_coordinate(street_name, house_number,
+                                               point.longitude, point.latitude)
                     processed.put(point)
                 except Exception:
                     err_msg = "While processing {} error occured"
