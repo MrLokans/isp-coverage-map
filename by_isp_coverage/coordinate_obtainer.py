@@ -80,9 +80,9 @@ class CoordinateObtainer(object):
                 point = Point(longitude=coord[0],
                               latitude=coord[1],
                               description="")
-                logger.debug("Cached value found: {}".format(point))
+                msg = "Cached value found for {} -{}: {}"
+                logger.debug(msg.format(street_name, house, point))
                 processed.put(point)
-
             else:
                 search_str = " ".join(["Минск", street_name, house_number])
                 logger.debug("Getting data about {}".format(search_str))
@@ -99,7 +99,5 @@ class CoordinateObtainer(object):
                 except Exception:
                     err_msg = "While processing {} error occured"
                     logger.error(err_msg.format(search_str), exc_info=True)
-        results = []
         while not processed.empty():
-            results.append(processed.get())
-        return results
+            yield processed.get()

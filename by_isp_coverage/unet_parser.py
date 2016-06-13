@@ -103,11 +103,11 @@ class UNETParser(BaseParser):
         streets = self.get_all_connected_streets()
         street_data = [(s[1], self.houses_with_connection_on_street(s))
                        for s in streets]
-        return [self.coordinate_obtainer.get_points(street_data)]
+        return self.coordinate_obtainer.get_points(street_data)
 
 
 if __name__ == '__main__':
     parser = UNETParser()
-    points = parser.get_points()
+    points = list(parser.get_points())
     print(points)
     # parser.get_points(json_file="unet_output.json")

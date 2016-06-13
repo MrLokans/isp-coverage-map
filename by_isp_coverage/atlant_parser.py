@@ -1,12 +1,9 @@
-import json
-
 import requests
 import grequests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
 from .coordinate_obtainer import CoordinateObtainer
-from .point import Point
 
 
 class AtlantParser(BaseParser):
@@ -22,7 +19,7 @@ class AtlantParser(BaseParser):
         street_names = self.get_street_names()
         houses_data = [(street_name, self.get_house_list_for_street(street_name))
                        for street_name in street_names]
-        return [self.coordinate_obtainer.get_points(houses_data)]
+        return self.coordinate_obtainer.get_points(houses_data)
 
     def _generate_search_url(self, l):
         return "/".join((self.STREET_SEARCH_URL, l))
@@ -44,7 +41,7 @@ class AtlantParser(BaseParser):
         # It does not work for some reason, may be we should set custom user-agent
         # input_ = soup.find(name="input", attrs={"name": "form_build_id"})
         # return input_["value"]
-        return "form-xxGWMlRuGK58F5fJ9t0TsXhVUWloXeqzxzmeyya-h7A"
+        return "form-UNgFxuDC4KvbsVODEIaqDMNzRklGDvgPRA8welX3uV0"
 
     def __extract_houses(self, text):
         soup = bs(text, "html.parser")
@@ -88,7 +85,7 @@ class AtlantParser(BaseParser):
 
 def main():
     parser = AtlantParser()
-    points = parser.get_points()
+    points = list(parser.get_points())
     print(points)
 
 if __name__ == '__main__':
