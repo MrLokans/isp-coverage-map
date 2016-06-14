@@ -8,7 +8,7 @@ from .coordinate_obtainer import CoordinateObtainer
 
 class AtlantParser(BaseParser):
     PARSER_NAME = "atlant"
-    PARSER_URL = "http://telecom.by/internet/minsk/ethernet"
+    PARSER_URL = "http://telecom.by"
     STREET_SEARCH_URL = "http://telecom.by/at/zone/autocomplete/streets/2"
 
     def __init__(self):

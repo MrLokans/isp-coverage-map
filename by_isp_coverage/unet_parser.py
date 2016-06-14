@@ -14,7 +14,7 @@ STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
 
 class UNETParser(BaseParser):
     PARSER_NAME = "UNET"
-    BASE_URL = "http://unet.by"
+    PARSER_URL = "http://unet.by"
 
     def __init__(self):
         super().__init__()
@@ -37,7 +37,7 @@ class UNETParser(BaseParser):
 
     def houses_with_connection_on_street(self, street):
         """Gets all house numbers if any on the street"""
-        u = self.BASE_URL
+        u = self.PARSER_URL
         street_id, _ = street
         nmbrs = range(1, 10)
         houses = []
@@ -52,7 +52,7 @@ class UNETParser(BaseParser):
 
     def get_all_connected_streets(self):
         ltrs = "0123456789абвгдеёжзийклмнопрстуфхцчшщэюя"
-        u = self.BASE_URL
+        u = self.PARSER_URL
 
         streets = []
         rs = (grequests.get(u, params={"act": "get_street", "data": l})

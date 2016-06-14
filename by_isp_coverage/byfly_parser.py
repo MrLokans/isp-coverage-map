@@ -9,6 +9,7 @@ from .point import Point
 
 class ByflyParser(BaseParser):
     PARSER_NAME = "byfly"
+    PARSER_URL = "http://byfly.by"
     BYFLY_MAP_URL = "http://byfly.by/karta-x-pon"
     MAP_SCRIPT_INDEX = 16
 
