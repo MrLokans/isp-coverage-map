@@ -1,9 +1,14 @@
+import logging
+
 import requests
 import grequests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
 from .coordinate_obtainer import CoordinateObtainer
+
+
+logger = logging.getLogger(__name__)
 
 
 class AtlantParser(BaseParser):
@@ -41,7 +46,7 @@ class AtlantParser(BaseParser):
         # It does not work for some reason, may be we should set custom user-agent
         # input_ = soup.find(name="input", attrs={"name": "form_build_id"})
         # return input_["value"]
-        return "form-UNgFxuDC4KvbsVODEIaqDMNzRklGDvgPRA8welX3uV0"
+        return "form-0eZvQmvoKbKCEYKEnZ83hDbqZNg6h-V8vFoS9UOGnR4"
 
     def __extract_houses(self, text):
         soup = bs(text, "html.parser")
@@ -57,14 +62,22 @@ class AtlantParser(BaseParser):
         # Asyncronous code causes some results not being returned by API
         # rs = (grequests.get(u) for u in urls)
         # results = grequests.map(rs)
-        results = [requests.get(u) for u in urls]
+        results = []
+        for u in urls:
+            try:
+                r = requests.get(u)
+                results.append(r)
+            except Exception:
+                logger.exception("Error retrieving url {}".format(u))
+        # results = [requests.get(u) for u in urls]
         for i, r in enumerate(results):
             try:
                 dict_data = r.json()
                 street_names.extend(dict_data)
             except AttributeError:
+                letter = ltrs[i]
                 msg = "Error retrieving data for letter {}. ({})"
-                print(msg.format(ltrs[i], self._generate_search_url(ltrs[i])))
+                print(msg.format(letter, self._generate_search_url(letter)))
         return street_names
 
     def get_house_list_for_street(self, street_name):
@@ -72,15 +85,19 @@ class AtlantParser(BaseParser):
             self.form_build_id = self._get_form_build_id()
 
         data = {
-            "street": "Янковского",
+            "street": street_name,
             "form_id": "at_zone_view_zone_form",
             "form_build_id": self.form_build_id,
         }
-        r = self._session.post("http://telecom.by/system/ajax", data=data)
-        json_ = r.json()
-        houses_html = json_[1]["data"]
-        house_numbers = self.__extract_houses(houses_html)
-        return house_numbers.split(",")
+        try:
+            r = self._session.post("http://telecom.by/system/ajax", data=data)
+            json_ = r.json()
+            houses_html = json_[1]["data"]
+            house_numbers = self.__extract_houses(houses_html)
+            return house_numbers.split(",")
+        except Exception:
+            logger.exception("Error occured getting house numbers.")
+            return []
 
 
 def main():
