@@ -38,7 +38,10 @@ class RedisCache(object):
         key = "{}-{}".format(street_name, house_number)
         value = "{}|{}".format(long, lat)
         try:
-            self._connection.set(key, value)
+            put = self._connection.set(key, value)
+            if not put:
+                err_msg = "Item {}-{} was not cached for some reason."
+                logger.error(err_msg.format(key, value))
         except redis.exceptions.ConnectionError:
             err_msg = "Error putting key {} with value {} into cache."
             logger.error(err_msg.format(key, value), exc_info=True)
@@ -75,17 +78,16 @@ class CoordinateObtainer(object):
             street_name, house_number = house_data
 
             # Lookup in cache
-            coord = self._cache.get_coordinate(street_name, house)
+            coord = self._cache.get_coordinate(street_name, house_number)
             if coord is not None:
                 point = Point(longitude=coord[0],
                               latitude=coord[1],
                               description="")
-                msg = "Cached value found for {} -{}: {}"
-                logger.debug(msg.format(street_name, house, point))
+                msg = "Cached value found for {} - {}: {}"
+                logger.debug(msg.format(street_name, house_number, point))
                 processed.put(point)
             else:
                 search_str = " ".join(["Минск", street_name, house_number])
-                logger.debug("Getting data about {}".format(search_str))
 
                 try:
                     location = self._locator.geocode(search_str)
