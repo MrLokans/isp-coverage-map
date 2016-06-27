@@ -6,7 +6,6 @@ from lxml.html import fromstring
 import grequests
 
 from .base import BaseParser
-from .coordinate_obtainer import CoordinateObtainer
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -16,9 +15,8 @@ class UNETParser(BaseParser):
     PARSER_NAME = "UNET"
     PARSER_URL = "http://unet.by"
 
-    def __init__(self):
-        super().__init__()
-        self.coordinate_obtainer = CoordinateObtainer()
+    def __init__(self, coordinate_obtainer):
+        self.coordinate_obtainer = coordinate_obtainer
 
     def street_names_from_json(self, json_file):
         streets = []
@@ -104,6 +102,9 @@ class UNETParser(BaseParser):
         street_data = [(s[1], self.houses_with_connection_on_street(s))
                        for s in streets]
         return self.coordinate_obtainer.get_points(street_data)
+
+    def get_connections(self, city="", street="", house_number=""):
+        pass
 
 
 if __name__ == '__main__':

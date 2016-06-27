@@ -1,13 +1,8 @@
-import os
-import re
-import json
 import time
 
-from lxml.html import fromstring
 import grequests
 
 from .base import BaseParser
-from .coordinate_obtainer import CoordinateObtainer
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -17,8 +12,8 @@ class FlynetParser(BaseParser):
     PARSER_NAME = "flynet"
     PARSER_URL = "https://flynet.by"
 
-    def __init__(self):
-        self.coordinate_obtainer = CoordinateObtainer()
+    def __init__(self, coordinate_obtainer):
+        self.coordinate_obtainer = coordinate_obtainer
 
     def get_all_connected_streets(self):
         ltrs = "0123456789абвгдеёжзийклмнопрстуфхцчшщэюя"

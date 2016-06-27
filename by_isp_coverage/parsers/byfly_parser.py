@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
-from .point import Point
+from ..point import Point
 
 
 class ByflyParser(BaseParser):
@@ -12,6 +12,9 @@ class ByflyParser(BaseParser):
     PARSER_URL = "http://byfly.by"
     BYFLY_MAP_URL = "http://byfly.by/karta-x-pon"
     MAP_SCRIPT_INDEX = 16
+
+    def __init__(self, *args, **kwargs):
+        pass
 
     def get_points(self):
         r = requests.get(self.BYFLY_MAP_URL)
@@ -26,6 +29,9 @@ class ByflyParser(BaseParser):
         points = [Point(m["longitude"], m["latitude"], "")
                   for m in map_dict["gmap"]["auto1map"]["markers"]]
         return points
+
+    def get_connections(self, city="", street="", house_number=""):
+        return []
 
     def __clean_script_str(self, s):
         res = s.replace('<!--//--><![CDATA[//><!--', '')\

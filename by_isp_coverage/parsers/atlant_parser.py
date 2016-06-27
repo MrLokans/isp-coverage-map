@@ -5,7 +5,6 @@ import grequests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
-from .coordinate_obtainer import CoordinateObtainer
 
 
 logger = logging.getLogger(__name__)
@@ -16,15 +15,18 @@ class AtlantParser(BaseParser):
     PARSER_URL = "http://telecom.by"
     STREET_SEARCH_URL = "http://telecom.by/at/zone/autocomplete/streets/2"
 
-    def __init__(self):
+    def __init__(self, coordinate_obtainer):
         self._session = requests.Session()
-        self.coordinate_obtainer = CoordinateObtainer()
+        self.coordinate_obtainer = coordinate_obtainer
 
     def get_points(self):
         street_names = self.get_street_names()
         houses_data = [(street_name, self.get_house_list_for_street(street_name))
                        for street_name in street_names]
         return self.coordinate_obtainer.get_points(houses_data)
+
+    def get_connections(self, city="", street="", house_number=""):
+        return []
 
     def _generate_search_url(self, l):
         return "/".join((self.STREET_SEARCH_URL, l))
