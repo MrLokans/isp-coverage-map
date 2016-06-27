@@ -1,12 +1,13 @@
-from .atlant_parser import AtlantParser
-from .byfly_parser import ByflyParser
+from .parsers.atlant_parser import AtlantParser
+from .parsers.byfly_parser import ByflyParser
+from .parsers.flynet_parser import FlynetParser
 from .csv_exporter import CSV_Exporter
-from .mts_parser import MTS_Parser
-from .unet_parser import UNETParser
+from .parsers.mts_parser import MTS_Parser
+from .parsers.unet_parser import UNETParser
 
 
 __version__ = "0.2.5"
 
 
-__all__ = ["ByflyParser", "CSV_Exporter", "MTS_Parser",
-           "AtlantParser", "UNETParser"]
+__all__ = ["ByflyParser", "CSV_Exporter", "FlynetParser",
+           "MTS_Parser", "AtlantParser", "UNETParser"]
