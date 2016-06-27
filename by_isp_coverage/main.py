@@ -44,7 +44,6 @@ def get_parsers():
 
 
 def get_parser_by_name(parsers, name):
-    parser = None
     for parser_cls in parsers:
         if parser_cls.PARSER_NAME.lower() == name.lower():
             parser = parser_cls()
@@ -60,7 +59,7 @@ def main():
     parser = get_parser_by_name(get_parsers(), args.name)
 
     if args.connections:
-        connections = parser.get_connections(city=args.city, street=args.city,
+        connections = parser.get_connections(region=args.region.lower(), city=args.city, street=args.street,
                                              house_number=args.house)
         exporter.export_connections(args.path, connections)
 
