@@ -27,8 +27,12 @@ def parse_args():
     parser.add_argument('--region', '-r',
                         help="Имя области для поиска. (all, Бресткая, Витебская и т.д.)",
                         default="Минск")
-    parser.add_argument('--house', '-h',
+    parser.add_argument('--house',
                         help="Номер дома, для которого необходимо проверить подключение.",
+                        default=""
+                        )
+    parser.add_argument('--city', '-c',
+                        help="Имя города для поиска.",
                         default=""
                         )
     args = parser.parse_args()
