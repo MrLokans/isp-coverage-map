@@ -13,7 +13,7 @@ git clone https://github.com/MrLokans/isp-coverage-map
 Install package
 ```bash
 cd isp-coverage-map
-sudo pip setup.py install
+sudo python setup.py install
 ```
 
 ### Usage ###
