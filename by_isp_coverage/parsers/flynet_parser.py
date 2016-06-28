@@ -87,12 +87,14 @@ class FlynetParser(BaseParser):
 
     def get_points(self):
         streets = self.get_all_connected_streets()
-        data = [{s: self._house_list_for_street(s)} for s in streets]
-        return data
+        data = [(s, self._house_list_for_street(s)) for s in streets]
+        return self.coordinate_obtainer.get_points(data)
 
 
 if __name__ == '__main__':
-    parser = FlynetParser(None)
+    from ..coordinate_obtainer import CoordinateObtainer
+    parser = FlynetParser(CoordinateObtainer())
     # points = parser.get_points()
     # print(points)
-    print(list(parser.get_connections()))
+    # print(list(parser.get_connections()))
+    print(list(parser.get_points()))
