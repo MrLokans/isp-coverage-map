@@ -3,6 +3,7 @@ import time
 import grequests
 
 from .base import BaseParser
+from ..connection import Connection
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -69,6 +70,21 @@ class FlynetParser(BaseParser):
         house_numbers.discard('')
         return house_numbers
 
+    def __connections_from_street(self, street):
+        provider = "flynet"
+        region = u"Минск"
+        city = u"Минск"
+        status = u"Есть подключение"
+        for h in self._house_list_for_street(street):
+            yield Connection(provider=provider, region=region,
+                             city=city, street=street, status=status,
+                             house=h)
+
+    def get_connections(self):
+        streets = self.get_all_connected_streets()
+        for street in streets:
+            yield from self.__connections_from_street(street)
+
     def get_points(self):
         streets = self.get_all_connected_streets()
         data = [{s: self._house_list_for_street(s)} for s in streets]
@@ -76,6 +92,7 @@ class FlynetParser(BaseParser):
 
 
 if __name__ == '__main__':
-    parser = FlynetParser()
-    points = parser.get_points()
-    print(points)
+    parser = FlynetParser(None)
+    # points = parser.get_points()
+    # print(points)
+    print(list(parser.get_connections()))
