@@ -1,4 +1,5 @@
 import logging
+import abc
 from queue import Queue
 
 import redis
@@ -10,7 +11,20 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-class RedisCache(object):
+class AbstractCache(metaclass=abc.ABCMeta):
+
+    @abc.abstractmethod
+    def get_coordinate(street_name, house_number):
+        """Returns (longitude, latitude) tuple from cache"""
+        pass
+
+    @abc.abstractmethod
+    def put_coordinate(street_name, house_number):
+        """Puts coordinate into cache cache"""
+        pass
+
+
+class RedisCache(AbstractCache):
     """This class implements caching interface
     for redis backend"""
 
