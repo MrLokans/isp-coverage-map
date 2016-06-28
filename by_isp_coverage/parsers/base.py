@@ -8,5 +8,5 @@ class BaseParser(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def get_connections(self, city="", street="", house_number=""):
+    def get_connections(self, region="", city="", street="", house_number=""):
         return []
