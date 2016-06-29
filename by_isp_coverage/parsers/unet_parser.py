@@ -6,6 +6,8 @@ from lxml.html import fromstring
 import grequests
 
 from .base import BaseParser
+from ..connection import Connection
+from ..coordinate_obtainer import CoordinateObtainer
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -33,7 +35,7 @@ class UNETParser(BaseParser):
             splitted.pop(0)
         return " ".join(splitted)
 
-    def houses_with_connection_on_street(self, street):
+    def _house_list_for_street(self, street):
         """Gets all house numbers if any on the street"""
         u = self.PARSER_URL
         street_id, _ = street
@@ -99,16 +101,29 @@ class UNETParser(BaseParser):
 
     def get_points(self, json_file=None):
         streets = self.get_all_connected_streets()
-        street_data = [(s[1], self.houses_with_connection_on_street(s))
+        street_data = [(s[1], self._house_list_for_street(s))
                        for s in streets]
         return self.coordinate_obtainer.get_points(street_data)
 
+    def __connections_from_street(self, street):
+        provider = "unet"
+        region = u"Минск"
+        city = u"Минск"
+        status = u"Есть подключение"
+        for h in self._house_list_for_street(street):
+            yield Connection(provider=provider, region=region,
+                             city=city, street=street, status=status,
+                             house=h)
+
     def get_connections(self, city="", street="", house_number=""):
-        pass
+        streets = self.get_all_connected_streets()
+        for street in streets:
+            yield from self.__connections_from_street(street)
 
 
 if __name__ == '__main__':
-    parser = UNETParser()
-    points = list(parser.get_points())
-    print(points)
-    # parser.get_points(json_file="unet_output.json")
+    parser = UNETParser(coordinate_obtainer=CoordinateObtainer())
+    # points = list(parser.get_points())
+    connections = list(parser.get_connections())
+    # print(points)
+    print(connections)
