@@ -19,7 +19,7 @@ class MTS_Parser(BaseParser):
         """Parse MTS site and extract points from map"""
         r = requests.get(self.MTS_MAP_URL)
         matches = (x for x in re.findall(self.YA_MAPS_POINT_REGEX, r.text))
-        return [Point(long, lat, "") for _, long, lat in matches]
+        return (Point(long, lat, "") for _, long, lat in matches)
 
 
 if __name__ == '__main__':
