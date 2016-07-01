@@ -8,8 +8,7 @@ from .base import BaseParser
 from ..point import Point
 from ..connection import Connection
 
-import six
-from six.moves.urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 import argparse
 import re
@@ -84,7 +83,6 @@ class ByflyParser(BaseParser):
 
     def _get_pagination_pages_links(self, region, city,
                                     street_name, number):
-        street_name = to_unicode(street_name)
         default_link = self.XPON_CHECK_URL.format(self.PAGE_STATEMENT.format('0'),
                                                   self.REGIONS_MAP[region],
                                                   city,
@@ -128,12 +126,6 @@ class ByflyParser(BaseParser):
         res = res.replace('jQuery.extend(Drupal.settings, ', '')
         res = res[:-4]
         return res
-
-
-def to_unicode(s):
-    if isinstance(s, six.binary_type):
-        return s.decode('utf-8')
-    return s
 
 
 def unescape_text(text):
