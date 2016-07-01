@@ -38,6 +38,14 @@ var placemark91179 = new YMaps.Placemark(new YMaps.GeoPoint(31.015536,52.447689)
         self.assertEqual(str(coord[0]), '92882')
         self.assertEqual(str(coord[1]), 'Подключен')
 
+    def test_adress_corectly_extracted_from_description(self):
+        description = "Адрес: Гомель, ул. Мазурова, 113А<BR/>Отказано в строительстве"
+        city, street, house, status = MTS_Parser().parse_description(description)
+        self.assertEqual(city, "Гомель")
+        self.assertEqual(street, "ул. Мазурова")
+        self.assertEqual(house, "113А")
+        self.assertEqual(status, "Отказано в строительстве")
+
 
 if __name__ == '__main__':
     unittest.main()
