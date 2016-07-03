@@ -9,11 +9,67 @@ from ..connection import Connection
 
 from urllib.parse import urlparse, parse_qs
 
-import re
+# import re
+import regex
 
 import asyncio
 import aiohttp
 
+
+RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+)(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
+
+
+def is_for_artificial_person(house_str):
+    s = house_str.lower()
+    return "юр. лица" in s or "юридические лица" in s
+
+
+def valid_connection(connection):
+
+    if str(connection.house).isdecimal():
+        return [connection]
+
+    match = RE_BUILDING_NUMBER.match(connection.house)
+    if match:
+        house = connection.house
+
+        new_house = "{} (корпус {})".format(match.groupdict()['house_number'], match.groupdict()['building'])
+        new_c = Connection(provider=connection.provider,
+                           region=connection.region,
+                           city=connection.city,
+                           street=connection.street,
+                           house=new_house,
+                           status=connection.status)
+        return [new_c]
+
+    if is_for_artificial_person(connection.house):
+        house = connection.house
+        house = house.replace("(юридические лица)", "")
+        house = house.replace("ЮР. ЛИЦА", "")
+        house = house.replace("юр. лица", "")
+        status = connection.status + " (юридические лица)"
+        new_c = Connection(provider=connection.provider,
+                           region=connection.region,
+                           city=connection.city,
+                           street=connection.street,
+                           house=house.strip(),
+                           status=status)
+        return [new_c]
+    if "," in connection.house:
+        result = []
+        houses = connection.house.split(",")
+        for house in houses:
+            new_c = Connection(provider=connection.provider,
+                               region=connection.region,
+                               city=connection.city,
+                               street=connection.street,
+                               house=house.strip(),
+                               status=connection.status)
+            result.append(new_c)
+        return result
+
+
+    return [connection]
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -84,6 +140,7 @@ class ByflyParser(BaseParser):
         return points
 
     def get_connections(self, region="all", city="", street="", house_number=""):
+        region = region.lower()
         result = []
         links = self._get_pagination_pages_links(region=region, city=city,
                                                  street_name=street,
@@ -158,9 +215,14 @@ def unescape_text(text):
 def main():
     parser = ByflyParser()
     # points = parser.get_points()
-    connections = parser.get_connections()
+    connections = parser.get_connections(region='Минск')
     for c in connections:
-        print(c)
+        try:
+            int(c.house)
+        except ValueError:
+            print(c.house)
+        # if not re.match(r"\d+", c.house):
+            # print(c)
     # print(points)
 
 
