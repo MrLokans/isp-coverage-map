@@ -5,6 +5,7 @@ import grequests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
+from ..coordinate_obtainer import CoordinateObtainer
 
 
 logger = logging.getLogger(__name__)
@@ -33,22 +34,11 @@ class AtlantParser(BaseParser):
 
     def _get_form_build_id(self):
         """Get form_build_id param value to make correct XHR requests"""
-        # headers = {
-        #     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        #     "Accept-Encoding": "gzip, deflate, sdch",
-        #     "Accept-Language": "ru,en-US;q=0.8,en;q=0.6,ja;q=0.4",
-        #     "Connection": "keep-alive",
-        #     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36",
-        #     "Upgrade-Insecure-Requests": "1",
-        #     "DNT": "1",
-        #     "Host": "telecom.by",
-        # }
-        # page_content = self._session.get(self.PARSER_URL, headers=headers).text
-        # soup = bs(page_content, "html.parser")
-        # It does not work for some reason, may be we should set custom user-agent
-        # input_ = soup.find(name="input", attrs={"name": "form_build_id"})
-        # return input_["value"]
-        return "form-0eZvQmvoKbKCEYKEnZ83hDbqZNg6h-V8vFoS9UOGnR4"
+        page_content = requests.get("http://telecom.by/internet/minsk/ethernet").text
+        soup = bs(page_content, "html.parser")
+        selected = soup.select("form.zone__form input[name=\"form_build_id\"]")
+        _id = selected[0]["value"]
+        return _id
 
     def __extract_houses(self, text):
         soup = bs(text, "html.parser")
@@ -103,9 +93,10 @@ class AtlantParser(BaseParser):
 
 
 def main():
-    parser = AtlantParser()
+    parser = AtlantParser(CoordinateObtainer())
     points = list(parser.get_points())
     print(points)
+
 
 if __name__ == '__main__':
     main()
