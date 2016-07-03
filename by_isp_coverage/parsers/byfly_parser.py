@@ -1,7 +1,6 @@
 import json
 
 import requests
-import grequests
 from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
@@ -10,10 +9,25 @@ from ..connection import Connection
 
 from urllib.parse import urlparse, parse_qs
 
-import argparse
 import re
 
-from collections import namedtuple
+import asyncio
+import aiohttp
+
+
+async def fetch(session, url):
+    async with session.get(url) as response:
+        if str(response.status) != '200':
+            print("Error occured on url {}: {}".format(response.url, response.status))
+            return
+        return await response.text()
+
+async def fetch_all(session, urls, loop):
+    results = await asyncio.gather(
+        *[fetch(session, url) for url in urls],
+        return_exceptions=True  # default is false, that would raise
+    )
+    return results
 
 
 class ByflyParser(BaseParser):
@@ -69,16 +83,22 @@ class ByflyParser(BaseParser):
                   for m in map_dict["gmap"]["auto1map"]["markers"]]
         return points
 
-    def get_connections(self, region="", city="", street="", house_number=""):
+    def get_connections(self, region="all", city="", street="", house_number=""):
         result = []
         links = self._get_pagination_pages_links(region=region, city=city,
                                                  street_name=street,
                                                  number=house_number)
+        links = list(links)
+        loop = asyncio.get_event_loop()
 
-        rs = (grequests.get(l) for l in links)
-        results = grequests.map(rs)
-        for r in results:
-            result.extend(self._connection_from_page_response(r))
+        responce_contents = []
+        with aiohttp.ClientSession(loop=loop) as session:
+            responce_contents = loop.run_until_complete(fetch_all(session, links, loop))
+
+        for r in responce_contents:
+            if not r:
+                continue
+            result.extend(self._connection_from_page(r))
         return result
 
     def _get_pagination_pages_links(self, region, city,
@@ -106,8 +126,8 @@ class ByflyParser(BaseParser):
                        for i in range(page_count))
         return pages_links
 
-    def _connection_from_page_response(self, response):
-        soup = bs(response.text, "html.parser")
+    def _connection_from_page(self, page_text):
+        soup = bs(page_text, "html.parser")
         rows = soup.find_all("tr", class_=re.compile(r"(odd|even)"))
         return (self._street_connection_data(r) for r in rows)
 
@@ -137,8 +157,11 @@ def unescape_text(text):
 
 def main():
     parser = ByflyParser()
-    points = parser.get_points()
-    print(points)
+    # points = parser.get_points()
+    connections = parser.get_connections()
+    for c in connections:
+        print(c)
+    # print(points)
 
 
 if __name__ == '__main__':
