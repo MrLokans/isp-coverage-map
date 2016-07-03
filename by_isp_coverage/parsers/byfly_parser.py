@@ -9,19 +9,37 @@ from ..connection import Connection
 
 from urllib.parse import urlparse, parse_qs
 
-# import re
 import regex
 
 import asyncio
 import aiohttp
 
 
-RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+)(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
+RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+),?(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
+RE_BUILD_NUMBER_NICE_FORMAT = regex.compile()
 
 
 def is_for_artificial_person(house_str):
     s = house_str.lower()
     return "юр. лица" in s or "юридические лица" in s
+
+
+def split_house_list(connection):
+    if "," in connection.house:
+        result = []
+        houses = connection.house.split(",")
+        for house in houses:
+            if house == '':
+                continue
+            new_c = Connection(provider=connection.provider,
+                               region=connection.region,
+                               city=connection.city,
+                               street=connection.street,
+                               house=house.strip(),
+                               status=connection.status)
+            result.append(new_c)
+        return result
+    return [connection]
 
 
 def valid_connection(connection):
@@ -67,8 +85,6 @@ def valid_connection(connection):
                                status=connection.status)
             result.append(new_c)
         return result
-
-
     return [connection]
 
 async def fetch(session, url):
@@ -155,7 +171,8 @@ class ByflyParser(BaseParser):
         for r in responce_contents:
             if not r:
                 continue
-            result.extend(self._connection_from_page(r))
+            for c in self._connections_from_page(r):
+                result.extend(c)
         return result
 
     def _get_pagination_pages_links(self, region, city,
@@ -183,10 +200,11 @@ class ByflyParser(BaseParser):
                        for i in range(page_count))
         return pages_links
 
-    def _connection_from_page(self, page_text):
+    def _connections_from_page(self, page_text):
         soup = bs(page_text, "html.parser")
-        rows = soup.find_all("tr", class_=re.compile(r"(odd|even)"))
-        return (self._street_connection_data(r) for r in rows)
+        rows = soup.find_all("tr", class_=regex.compile(r"(odd|even)"))
+        for r in rows:
+            yield from self._street_connection_data(r)
 
     def _street_connection_data(self, street_row):
         status_data = Connection(self.FIELD_CLASS_MAP["provider"],
@@ -195,7 +213,7 @@ class ByflyParser(BaseParser):
                                  street_row.find("td", class_=self.FIELD_CLASS_MAP["street"]).text.strip(),
                                  street_row.find("td", class_=self.FIELD_CLASS_MAP["number"]).text.strip(),
                                  street_row.find("td", class_=self.FIELD_CLASS_MAP["status"]).text.strip())
-        return status_data
+        return map(valid_connection, split_house_list(status_data))
 
     def __clean_script_str(self, s):
         res = s.replace('<!--//--><![CDATA[//><!--', '')\
@@ -215,14 +233,9 @@ def unescape_text(text):
 def main():
     parser = ByflyParser()
     # points = parser.get_points()
-    connections = parser.get_connections(region='Минск')
+    connections = parser.get_connections()
     for c in connections:
-        try:
-            int(c.house)
-        except ValueError:
-            print(c.house)
-        # if not re.match(r"\d+", c.house):
-            # print(c)
+        print(c)
     # print(points)
 
 
