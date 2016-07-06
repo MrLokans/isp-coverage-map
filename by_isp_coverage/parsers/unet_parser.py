@@ -9,6 +9,9 @@ from .base import BaseParser
 from ..connection import Connection
 from ..coordinate_obtainer import CoordinateObtainer
 
+import logging
+
+logging.getLogger("requests").setLevel(logging.WARNING)
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
 
@@ -112,7 +115,7 @@ class UNETParser(BaseParser):
         status = u"Есть подключение"
         for h in self._house_list_for_street(street):
             yield Connection(provider=provider, region=region,
-                             city=city, street=street, status=status,
+                             city=city, street=street[1], status=status,
                              house=h)
 
     def get_connections(self, city="", street="", house_number=""):
@@ -124,6 +127,5 @@ class UNETParser(BaseParser):
 if __name__ == '__main__':
     parser = UNETParser(coordinate_obtainer=CoordinateObtainer())
     # points = list(parser.get_points())
-    connections = list(parser.get_connections())
-    # print(points)
-    print(connections)
+    for c in parser.get_connections():
+        print(c)

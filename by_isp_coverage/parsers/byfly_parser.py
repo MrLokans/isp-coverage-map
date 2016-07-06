@@ -16,7 +16,6 @@ import aiohttp
 
 
 RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+),?(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
-RE_BUILD_NUMBER_NICE_FORMAT = regex.compile()
 
 
 def is_for_artificial_person(house_str):
@@ -155,9 +154,10 @@ class ByflyParser(BaseParser):
                   for m in map_dict["gmap"]["auto1map"]["markers"]]
         return points
 
-    def get_connections(self, region="all", city="", street="", house_number=""):
+    def get_connections(self, region="all", city="",
+                        street="", house_number=""):
         region = region.lower()
-        result = []
+
         links = self._get_pagination_pages_links(region=region, city=city,
                                                  street_name=street,
                                                  number=house_number)
@@ -172,8 +172,7 @@ class ByflyParser(BaseParser):
             if not r:
                 continue
             for c in self._connections_from_page(r):
-                result.extend(c)
-        return result
+                yield from c
 
     def _get_pagination_pages_links(self, region, city,
                                     street_name, number):
@@ -233,10 +232,9 @@ def unescape_text(text):
 def main():
     parser = ByflyParser()
     # points = parser.get_points()
-    connections = parser.get_connections()
+    connections = parser.get_connections(street="Либкнехта")
     for c in connections:
         print(c)
-    # print(points)
 
 
 if __name__ == '__main__':

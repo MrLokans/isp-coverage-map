@@ -3,10 +3,14 @@ from setuptools import setup, find_packages
 
 version = ""
 
+requirements = []
 # I actually took it from requests library
 with open('by_isp_coverage/__init__.py', 'r') as fd:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
                         fd.read(), re.MULTILINE).group(1)
+
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
 
 if not version:
     raise ValueError("No version specified.")
@@ -28,10 +32,7 @@ setup(
             'isp_coverage = by_isp_coverage.main:main'
         ]
     },
-    install_requires=[
-        'bs4',
-        'requests'
-    ],
+    install_requires=requirements,
     classifiers=(
         'Intended Audience :: Developers, Data Scientists',
         'Natural Language :: English',
