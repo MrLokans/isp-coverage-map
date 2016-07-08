@@ -45,20 +45,6 @@ class TestHouseSplitting(TestCaseBase):
     #     expected_results = [self.create_connection(house=str(i)) for i in (20, 30, 40)]
     #     self.assertEqual(expected_results, result)
 
-    # def test_artificial_person_simple_upper(self):
-    #     test_c = self.create_connection(house="2 ЮР. ЛИЦА", status="Here I am")
-    #     result = valid_connection(test_c)
-
-    #     expected_result = self.create_connection(house="2", status="Here I am (юридические лица)")
-    #     self.assertEqual(result[0], expected_result)
-
-    # def test_artificial_person_long_format(self):
-    #     test_c = self.create_connection(house="187 (юридические лица)", status="Here I am")
-    #     result = valid_connection(test_c)
-
-    #     expected_result = self.create_connection(house="187", status="Here I am (юридические лица)")
-    #     self.assertEqual(result[0], expected_result)
-
     # def test_building_numbers_parsed_correctly(self):
     #     test_c_uppercase = self.create_connection(house="29А")
     #     result = valid_connection(test_c_uppercase)

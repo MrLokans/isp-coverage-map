@@ -18,17 +18,17 @@ class TestCityFormatting(unittest.TestCase):
 
     def test_correctly_format_city_remains_the_same(self):
         city = "Сенница"
-        validated = next(self.validator.validate_city_field(city))
+        validated = self.validator.validate_city_field(city)[0]
         self.assertEqual(city, validated)
 
     def test_single_word_uppercase_city_transformed_correctly(self):
         city = "СЕННИЦА"
-        validated = next(self.validator.validate_city_field(city))
+        validated = self.validator.validate_city_field(city)[0]
         self.assertEqual(validated, "Сенница")
 
     def test_multiple_word_uppercase_city_transformed_correctly(self):
         city = "СЕННИЦА БОЛЬШАЯ"
-        validated = next(self.validator.validate_city_field(city))
+        validated = self.validator.validate_city_field(city)[0]
         self.assertEqual(validated, "Сенница Большая")
 
     def test_removes_abbreviations(self):
@@ -43,7 +43,7 @@ class TestCityFormatting(unittest.TestCase):
             ('Жемчужный агр.', 'Жемчужный'),
         ]
         for opt in options:
-            validated = next(self.validator.validate_city_field(opt[0]))
+            validated = self.validator.validate_city_field(opt[0])[0]
             self.assertEqual(validated, opt[1])
 
     def test_converts_to_correct_case_with_abbreviations(self):
@@ -53,12 +53,12 @@ class TestCityFormatting(unittest.TestCase):
             ('д. СОСНОВАЯ', 'Сосновая'),
         ]
         for opt in options:
-            validated = next(self.validator.validate_city_field(opt[0]))
+            validated = self.validator.validate_city_field(opt[0])[0]
             self.assertEqual(validated, opt[1])
 
     def test_extra_cases(self):
         city = "САМОХВАЛОВИЧИ п"
-        validated = next(self.validator.validate_city_field(city))
+        validated = self.validator.validate_city_field(city)[0]
         self.assertEqual(validated, "Самохваловичи")
 
     def test_city_connections_validated(self):
@@ -71,3 +71,9 @@ class TestCityFormatting(unittest.TestCase):
         test_data = [self.create_connection(city=o[0]) for o in options]
         self.assertEqual(list(self.validator._validate_city(test_data)),
                          expected_results)
+
+    def test_artificial_person_simple_upper(self):
+        test_c = self.create_connection(house="2 ЮР. ЛИЦА", status="Here I am")
+        validated = list(self.validator._validate_house([test_c]))
+        expected_result = self.create_connection(house="2", status="Here I am (юридические лица)")
+        self.assertEqual(validated, [expected_result])

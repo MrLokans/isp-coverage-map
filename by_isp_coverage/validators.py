@@ -41,10 +41,19 @@ class ConnectionValidator(object):
         for c in connections:
             fields = (f for f in validate_strategy(getattr(c, field)))
             for f in fields:
-                yield constructor(c, **{field: f})
+                try:
+                    callback = f[1]
+                    conn = constructor(c, **{field: f[0]})
+                    callback(conn)
+                    yield conn
+                except TypeError:
+                    yield constructor(c, **{field: f})
 
     def _validate_city(self, connections):
         return self.__validate_field(connections, "city")
+
+    def _validate_house(self, connections):
+        yield from self.__validate_field(connections, "house")
 
     def validate_city_field(self, city):
         if city.endswith(" п"):
@@ -55,37 +64,28 @@ class ConnectionValidator(object):
                 city = city.replace(part, '')
         city = city.lower().title()
 
-        yield city.strip()
+        return [city.strip()]
 
-    def valid_connection(connection):
-        if str(connection.house).isdecimal():
-            return [connection]
-
-        match = RE_BUILDING_NUMBER.match(connection.house)
+    def validate_house_field(self, house):
+        if str(house).isdecimal():
+            return []
+        match = RE_BUILDING_NUMBER.match(house)
         if match:
-            house = connection.house
-
-            new_house = "{} (корпус {})".format(match.groupdict()['house_number'], match.groupdict()['building'])
-            new_c = Connection.from_modified_connection(connection,
-                                                        house=new_house)
-            return [new_c]
-
-        if is_for_artificial_person(connection.house):
-            house = connection.house
+            d = match.groupdict()
+            new_house = "{} (корпус {})".format(d['house_number'],
+                                                d['building'])
+            return [new_house]
+        if is_for_artificial_person(house):
             house = house.replace("(юридические лица)", "")
             house = house.replace("ЮР. ЛИЦА", "")
             house = house.replace("юр. лица", "")
-            status = connection.status + " (юридические лица)"
-            new_c = Connection.from_modified_connection(connection,
-                                                        house=house.strip(),
-                                                        status=status)
-            return [new_c]
-        if "," in connection.house:
-            result = []
-            houses = connection.house.split(",")
-            for house in houses:
-                new_c = Connection.from_modified_connection(connection,
-                                                            house=house.strip())
-                result.append(new_c)
-            return result
-        return [connection]
+
+            def status_update_callback(c):
+                c.status = c.status + " (юридические лица)"
+
+            return [(house.strip(), status_update_callback)]
+
+        if "," in house:
+            houses = house.split(",")
+            return houses
+        return [house]
