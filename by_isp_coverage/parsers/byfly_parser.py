@@ -15,71 +15,6 @@ import asyncio
 import aiohttp
 
 
-RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+),?(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
-CITY_PARTS_TO_EXCLUDE = ("д.г.п.", "п.г.т", "аг.", "г.п.",
-                         "д.", "г.", "п.", "к.")
-
-
-def is_for_artificial_person(house_str):
-    s = house_str.lower()
-    return "юр. лица" in s or "юридические лица" in s
-
-
-def split_house_list(connection):
-    if "," in connection.house:
-        result = []
-        houses = connection.house.split(",")
-        for house in houses:
-            if house == '':
-                continue
-            new_c = Connection.from_modified_connection(connection,
-                                                        house=house.strip())
-            result.append(new_c)
-        return result
-    return [connection]
-
-
-def valid_connection(connection):
-    # connection = Connection(provider=connection.provider,
-    #                         region=connection.region,
-    #                         city=connection.city,
-    #                         street=connection.street,
-    #                         house=connection.house,
-    #                         status=connection.status)
-
-    if str(connection.house).isdecimal():
-        return [connection]
-
-    match = RE_BUILDING_NUMBER.match(connection.house)
-    if match:
-        house = connection.house
-
-        new_house = "{} (корпус {})".format(match.groupdict()['house_number'], match.groupdict()['building'])
-        new_c = Connection.from_modified_connection(connection,
-                                                    house=new_house)
-        return [new_c]
-
-    if is_for_artificial_person(connection.house):
-        house = connection.house
-        house = house.replace("(юридические лица)", "")
-        house = house.replace("ЮР. ЛИЦА", "")
-        house = house.replace("юр. лица", "")
-        status = connection.status + " (юридические лица)"
-        new_c = Connection.from_modified_connection(connection,
-                                                    house=house.strip(),
-                                                    status=status)
-        return [new_c]
-    if "," in connection.house:
-        result = []
-        houses = connection.house.split(",")
-        for house in houses:
-            new_c = Connection.from_modified_connection(connection,
-                                                        house=house.strip())
-            result.append(new_c)
-        return result
-    return [connection]
-
-
 async def fetch(session, url):
     async with session.get(url) as response:
         if str(response.status) != '200':
@@ -158,15 +93,15 @@ class ByflyParser(BaseParser):
         links = list(links)
         loop = asyncio.get_event_loop()
 
-        responce_contents = []
+        response_contents = []
         with aiohttp.ClientSession(loop=loop) as session:
-            responce_contents = loop.run_until_complete(fetch_all(session, links, loop))
+            response_contents = loop.run_until_complete(fetch_all(session, links, loop))
 
-        for r in responce_contents:
+        for r in response_contents:
             if not r:
                 continue
             for c in self._connections_from_page(r):
-                yield from c
+                yield c
 
     def _get_pagination_pages_links(self, region, city,
                                     street_name, number):
@@ -183,7 +118,8 @@ class ByflyParser(BaseParser):
             return [default_link]
         args = parse_qs(urlparse(last_page_link['href']).query)
         page_args = args['page'][0]
-        page_count = [i for i in page_args.split(',') if i.isdigit() and int(i)]
+        page_count = [i for i in page_args.split(',')
+                      if i.isdigit() and int(i)]
         page_count = int(str(page_count[0])) + 1
         pages_links = (self.XPON_CHECK_URL.format(self.PAGE_STATEMENT.format(str(i)),
                                                   self.REGIONS_MAP[region],
@@ -193,20 +129,24 @@ class ByflyParser(BaseParser):
                        for i in range(page_count))
         return pages_links
 
-    def _connections_from_page(self, page_text):
+    def _connections_from_page(self, page_text: str):
         soup = bs(page_text, "html.parser")
         rows = soup.find_all("tr", class_=regex.compile(r"(odd|even)"))
         for r in rows:
-            yield from self._street_connection_data(r)
+            yield self._connection_from_row(r)
 
-    def _street_connection_data(self, street_row):
-        status_data = Connection(self.FIELD_CLASS_MAP["provider"],
-                                 street_row.find("td", class_=self.FIELD_CLASS_MAP["region"]).text.strip(),
-                                 street_row.find("td", class_=self.FIELD_CLASS_MAP["city"]).text.strip(),
-                                 street_row.find("td", class_=self.FIELD_CLASS_MAP["street"]).text.strip(),
-                                 street_row.find("td", class_=self.FIELD_CLASS_MAP["number"]).text.strip(),
-                                 street_row.find("td", class_=self.FIELD_CLASS_MAP["status"]).text.strip())
-        return map(valid_connection, split_house_list(status_data))
+    def _row_connection_components(self, row: bs):
+        def get_td_elem(field_name):
+            result = row.find("td", class_=self.FIELD_CLASS_MAP[field_name])
+            return result
+        search_fields = ("region", "city", "street", "number", "status")
+        return (get_td_elem(field_name).text.strip()
+                for field_name in search_fields)
+
+    def _connection_from_row(self, row):
+        connection = Connection(self.FIELD_CLASS_MAP["provider"],
+                                *self._row_connection_components(row))
+        return connection
 
     def __clean_script_str(self, s):
         res = s.replace('<!--//--><![CDATA[//><!--', '')\
@@ -223,30 +163,13 @@ def unescape_text(text):
     return unescaped
 
 
-def validate_city(city):
-    if city.endswith(" п"):
-        city = city.replace(" п", "")
-
-    for part in CITY_PARTS_TO_EXCLUDE:
-        if part in city:
-            city = city.replace(part, '')
-    city = city.lower().title()
-
-    return city.strip()
-
-
 def main():
     parser = ByflyParser()
     # points = parser.get_points()
+
     connections = parser.get_connections()
-
-    cities = set()
     for c in connections:
-        cities.add(c.city)
-    for city in cities:
-        print(city)
-    print(len(cities))
-
+        print(c)
 
 if __name__ == '__main__':
     main()
