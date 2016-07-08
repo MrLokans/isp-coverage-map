@@ -16,6 +16,8 @@ import aiohttp
 
 
 RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+),?(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
+CITY_PARTS_TO_EXCLUDE = ("д.г.п.", "п.г.т", "аг.", "г.п.",
+                         "д.", "г.", "п.", "к.")
 
 
 def is_for_artificial_person(house_str):
@@ -30,18 +32,20 @@ def split_house_list(connection):
         for house in houses:
             if house == '':
                 continue
-            new_c = Connection(provider=connection.provider,
-                               region=connection.region,
-                               city=connection.city,
-                               street=connection.street,
-                               house=house.strip(),
-                               status=connection.status)
+            new_c = Connection.from_modified_connection(connection,
+                                                        house=house.strip())
             result.append(new_c)
         return result
     return [connection]
 
 
 def valid_connection(connection):
+    # connection = Connection(provider=connection.provider,
+    #                         region=connection.region,
+    #                         city=connection.city,
+    #                         street=connection.street,
+    #                         house=connection.house,
+    #                         status=connection.status)
 
     if str(connection.house).isdecimal():
         return [connection]
@@ -51,12 +55,8 @@ def valid_connection(connection):
         house = connection.house
 
         new_house = "{} (корпус {})".format(match.groupdict()['house_number'], match.groupdict()['building'])
-        new_c = Connection(provider=connection.provider,
-                           region=connection.region,
-                           city=connection.city,
-                           street=connection.street,
-                           house=new_house,
-                           status=connection.status)
+        new_c = Connection.from_modified_connection(connection,
+                                                    house=new_house)
         return [new_c]
 
     if is_for_artificial_person(connection.house):
@@ -65,26 +65,20 @@ def valid_connection(connection):
         house = house.replace("ЮР. ЛИЦА", "")
         house = house.replace("юр. лица", "")
         status = connection.status + " (юридические лица)"
-        new_c = Connection(provider=connection.provider,
-                           region=connection.region,
-                           city=connection.city,
-                           street=connection.street,
-                           house=house.strip(),
-                           status=status)
+        new_c = Connection.from_modified_connection(connection,
+                                                    house=house.strip(),
+                                                    status=status)
         return [new_c]
     if "," in connection.house:
         result = []
         houses = connection.house.split(",")
         for house in houses:
-            new_c = Connection(provider=connection.provider,
-                               region=connection.region,
-                               city=connection.city,
-                               street=connection.street,
-                               house=house.strip(),
-                               status=connection.status)
+            new_c = Connection.from_modified_connection(connection,
+                                                        house=house.strip())
             result.append(new_c)
         return result
     return [connection]
+
 
 async def fetch(session, url):
     async with session.get(url) as response:
@@ -229,12 +223,29 @@ def unescape_text(text):
     return unescaped
 
 
+def validate_city(city):
+    if city.endswith(" п"):
+        city = city.replace(" п", "")
+
+    for part in CITY_PARTS_TO_EXCLUDE:
+        if part in city:
+            city = city.replace(part, '')
+    city = city.lower().title()
+
+    return city.strip()
+
+
 def main():
     parser = ByflyParser()
     # points = parser.get_points()
-    connections = parser.get_connections(street="Либкнехта")
+    connections = parser.get_connections()
+
+    cities = set()
     for c in connections:
-        print(c)
+        cities.add(c.city)
+    for city in cities:
+        print(city)
+    print(len(cities))
 
 
 if __name__ == '__main__':
