@@ -1,10 +1,3 @@
-from collections import namedtuple
-
-
-# Connection = namedtuple('Connection', ["provider", "region", "city",
-#                                        "street", "house", "status"])
-
-
 class Connection(object):
 
     __slots__ = ('provider', 'region', 'city', 'street', 'house', 'status')

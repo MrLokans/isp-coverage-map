@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import regex
 
 from .connection import Connection
@@ -13,29 +15,26 @@ def is_for_artificial_person(house_str):
     return "юр. лица" in s or "юридические лица" in s
 
 
-def split_house_list(connection):
-    if "," in connection.house:
-        result = []
-        houses = connection.house.split(",")
-        for house in houses:
-            if house == '':
-                continue
-            new_c = Connection.from_modified_connection(connection,
-                                                        house=house.strip())
-            result.append(new_c)
-        return result
-    return [connection]
-
-
 class ConnectionValidator(object):
     def __init__(self, fields=None):
         self.fields = fields if fields else ("provider", "region", "city",
                                              "street", "house", "status")
 
-    def validate_connections(self, connections):
+    def validate_connections(self,
+                             connections: Iterable[Connection]) -> Iterable[Connection]:
+        """Runs a set of validations on the given connections sequence,
+        and yield validated connections"""
         return self._validate_city(connections)
 
-    def __validate_field(self, connections, field):
+    def __validate_field(self,
+                         connections: Iterable[Connection],
+                         field: str) -> Iterable[Connection]:
+        """An internal method running validations against the specified field.
+        It looks for methods like _validate_{field}_field defined in the validator class
+        and calls them on the specified connection field.
+        Methods return sequence of validated field values and, if required,
+        callbacks that, in their turn mutate original connection object.
+        """
         validate_strategy = getattr(self, "validate_{}_field".format(field))
         constructor = Connection.from_modified_connection
         for c in connections:
@@ -76,6 +75,8 @@ class ConnectionValidator(object):
                                                 d['building'])
             return [new_house]
         if is_for_artificial_person(house):
+            # We need to mutate original connection
+            # status, and we do it via callback
             house = house.replace("(юридические лица)", "")
             house = house.replace("ЮР. ЛИЦА", "")
             house = house.replace("юр. лица", "")
