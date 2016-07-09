@@ -17,8 +17,8 @@ class MTS_Parser(BaseParser):
     YA_MAPS_POINT_NAME_REGEX = r'placemark(?P<id>[\d]+)\.name = "(?P<name>[^\']*?)";'
     YA_MAPS_POINT_DESCRIPTION_REGEX = r'placemark(?P<id>[\d]+)\.description = "(?P<description>[^\']*?)";'
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, *args, validator=None, **kwargs):
+        self.validator = validator
 
     def _extract_point_name(self, point_id):
         pass
@@ -53,8 +53,12 @@ class MTS_Parser(BaseParser):
                                      .strip()
             del results[id_]['name']
         for k, v in results.items():
-            yield Connection("mts", "", v['city'], v['street'],
-                             v['house'], v['status'])
+            c = Connection("mts", "", v['city'], v['street'],
+                           v['house'], v['status'])
+            if self.validator:
+                yield from self.validator.validate_connections([c])
+            else:
+                yield c
 
     def get_points(self):
         """Parse MTS site and extract points from map"""
@@ -64,6 +68,7 @@ class MTS_Parser(BaseParser):
 
 
 if __name__ == '__main__':
-    parser = MTS_Parser()
+    from ..validators import ConnectionValidator
+    parser = MTS_Parser(validator=None)
     for c in parser.get_connections():
         print(c)

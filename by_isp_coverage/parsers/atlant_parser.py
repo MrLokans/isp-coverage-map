@@ -16,9 +16,10 @@ class AtlantParser(BaseParser):
     PARSER_URL = "http://telecom.by"
     STREET_SEARCH_URL = "http://telecom.by/at/zone/autocomplete/streets/2"
 
-    def __init__(self, coordinate_obtainer):
+    def __init__(self, coordinate_obtainer, validator=None):
         self._session = requests.Session()
         self.coordinate_obtainer = coordinate_obtainer
+        self.validator = validator
 
     def get_points(self):
         street_names = self.get_street_names()
@@ -27,7 +28,10 @@ class AtlantParser(BaseParser):
         return self.coordinate_obtainer.get_points(houses_data)
 
     def get_connections(self, city="", street="", house_number=""):
-        return []
+        if self.validator:
+            return self.validator.validate_connections([])
+        else:
+            return []
 
     def _generate_search_url(self, l):
         return "/".join((self.STREET_SEARCH_URL, l))

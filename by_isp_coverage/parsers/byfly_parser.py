@@ -66,8 +66,8 @@ class ByflyParser(BaseParser):
 
     MAP_SCRIPT_INDEX = 16
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, *args, validator=None, **kwargs):
+        self.validator = validator
 
     def get_points(self):
         r = requests.get(self.BYFLY_MAP_URL)
@@ -100,8 +100,12 @@ class ByflyParser(BaseParser):
         for r in response_contents:
             if not r:
                 continue
-            for c in self._connections_from_page(r):
-                yield c
+
+            connections = self._connections_from_page(r)
+            if self.validator:
+                yield from self.validator.validate_connections(connections)
+            else:
+                yield from connections
 
     def _get_pagination_pages_links(self, region, city,
                                     street_name, number):

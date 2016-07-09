@@ -13,8 +13,9 @@ class FlynetParser(BaseParser):
     PARSER_NAME = "flynet"
     PARSER_URL = "https://flynet.by"
 
-    def __init__(self, coordinate_obtainer):
+    def __init__(self, coordinate_obtainer, validator=None):
         self.coordinate_obtainer = coordinate_obtainer
+        self.validator = validator
 
     def get_all_connected_streets(self):
         ltrs = "0123456789абвгдеёжзийклмнопрстуфхцчшщэюя"
@@ -83,7 +84,11 @@ class FlynetParser(BaseParser):
     def get_connections(self):
         streets = self.get_all_connected_streets()
         for street in streets:
-            yield from self.__connections_from_street(street)
+            connections = self.__connections_from_street(street)
+            if self.validator:
+                yield from self.validator.validate_connections(connections)
+            else:
+                yield from connections
 
     def get_points(self):
         streets = self.get_all_connected_streets()

@@ -6,6 +6,7 @@ import grequests
 from .base import BaseParser
 from ..connection import Connection
 from ..coordinate_obtainer import CoordinateObtainer
+from ..validators import ConnectionValidator
 
 import logging
 
@@ -18,8 +19,9 @@ class UNETParser(BaseParser):
     PARSER_NAME = "UNET"
     PARSER_URL = "http://unet.by"
 
-    def __init__(self, coordinate_obtainer):
+    def __init__(self, coordinate_obtainer, validator=None):
         self.coordinate_obtainer = coordinate_obtainer
+        self.validator = validator
 
     def _update_street_name(self, street_name):
         """Moves words like 'street', 'crs' to the end of the name"""
@@ -90,11 +92,16 @@ class UNETParser(BaseParser):
     def get_connections(self, city="", street="", house_number=""):
         streets = self.get_all_connected_streets()
         for street in streets:
-            yield from self.__connections_from_street(street)
+            connections = self.__connections_from_street(street)
+            if self.validator:
+                yield from self.validator.validate_connections(connections)
+            else:
+                yield from connections
 
 
 if __name__ == '__main__':
-    parser = UNETParser(coordinate_obtainer=CoordinateObtainer())
+    parser = UNETParser(coordinate_obtainer=CoordinateObtainer(),
+                        validator=ConnectionValidator())
     # points = list(parser.get_points())
     for c in parser.get_connections():
         print(c)
