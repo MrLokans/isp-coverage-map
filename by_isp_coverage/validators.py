@@ -17,14 +17,16 @@ def is_for_artificial_person(house_str):
 
 class ConnectionValidator(object):
     def __init__(self, fields=None):
-        self.fields = fields if fields else ("provider", "region", "city",
-                                             "street", "house", "status")
+        self.fields = fields if fields else ("house", "provider", "region", "city",
+                                             "street", "status")
 
     def validate_connections(self,
                              connections: Iterable[Connection]) -> Iterable[Connection]:
         """Runs a set of validations on the given connections sequence,
         and yield validated connections"""
-        return self._validate_city(connections)
+        for f in self.fields:
+            connections = self.__validate_field(connections, f)
+        return connections
 
     def __validate_field(self,
                          connections: Iterable[Connection],
@@ -91,3 +93,15 @@ class ConnectionValidator(object):
             houses = [h for h in house.split(",") if h != ""]
             return houses
         return [house]
+
+    def validate_status_field(self, status):
+        return [status]
+
+    def validate_region_field(self, region):
+        return [region]
+
+    def validate_provider_field(self, provider):
+        return [provider]
+
+    def validate_street_field(self, street):
+        return [street]
