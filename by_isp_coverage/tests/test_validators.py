@@ -128,6 +128,12 @@ class TestBuildingNumberValidations(BaseCase):
         expected_result = [self.create_connection(house="8 (корпус 4)")]
         self.assertEqual(result, expected_result)
 
+    def test_building_numbers_with_spaced_letter_parsed_correctly(self):
+        connections = [self.create_connection(house="8 к4")]
+        result = list(self.validator._validate_house(connections))
+        expected_result = [self.create_connection(house="8 (корпус 4)")]
+        self.assertEqual(result, expected_result)
+
     def test_building_numbers_with_space_parsed_correctly(self):
         connections = [self.create_connection(house="8 Б")]
         result = list(self.validator._validate_house(connections))
