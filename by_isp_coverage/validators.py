@@ -45,7 +45,7 @@ class ConnectionValidator(object):
                     conn = constructor(c, **{field: f[0]})
                     callback(conn)
                     yield conn
-                except TypeError:
+                except (IndexError, TypeError):
                     yield constructor(c, **{field: f})
 
     def _validate_city(self, connections):
@@ -67,7 +67,7 @@ class ConnectionValidator(object):
 
     def validate_house_field(self, house):
         if str(house).isdecimal():
-            return []
+            return [house]
         match = RE_BUILDING_NUMBER.match(house)
         if match:
             d = match.groupdict()
@@ -87,6 +87,7 @@ class ConnectionValidator(object):
             return [(house.strip(), status_update_callback)]
 
         if "," in house:
-            houses = house.split(",")
+            house = house.replace(" ", "")
+            houses = [h for h in house.split(",") if h != ""]
             return houses
         return [house]
