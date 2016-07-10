@@ -40,7 +40,8 @@ class ConnectionValidator(object):
         validate_strategy = getattr(self, "validate_{}_field".format(field))
         constructor = Connection.from_modified_connection
         for c in connections:
-            fields = (f for f in validate_strategy(getattr(c, field)))
+            field_to_validate = getattr(c, field)
+            fields = (f for f in validate_strategy(field_to_validate))
             for f in fields:
                 try:
                     callback = f[1]
