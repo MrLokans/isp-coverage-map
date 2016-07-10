@@ -1,10 +1,6 @@
 import argparse
 
-from .parsers.byfly_parser import ByflyParser
-from .parsers.mts_parser import MTS_Parser
-from .parsers.unet_parser import UNETParser
-from .parsers.flynet_parser import FlynetParser
-
+import utils
 from .csv_exporter import CSV_Exporter
 
 
@@ -39,24 +35,11 @@ def parse_args():
     return args
 
 
-def get_parsers():
-    return [ByflyParser, FlynetParser, MTS_Parser, UNETParser]
-
-
-def get_parser_by_name(parsers, name):
-    for parser_cls in parsers:
-        if parser_cls.PARSER_NAME.lower() == name.lower():
-            parser = parser_cls()
-            return parser
-    else:
-        raise NameError("Incorrect parser name")
-
-
 def main():
     exporter = CSV_Exporter()
 
     args = parse_args()
-    parser = get_parser_by_name(get_parsers(), args.name)
+    parser = utils.get_parser_by_name(utils.get_parsers(), args.name)
 
     if args.connections:
         connections = parser.get_connections(region=args.region.lower(), city=args.city, street=args.street,

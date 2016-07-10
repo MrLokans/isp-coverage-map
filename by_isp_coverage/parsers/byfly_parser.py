@@ -32,7 +32,7 @@ async def fetch_all(session, urls, loop):
 
 class ByflyParser(BaseParser):
     PARSER_NAME = "byfly"
-    PARSER_URL = "http://byfly.by{}"
+    PARSER_URL = "http://byfly.by"
     BYFLY_MAP_URL = "http://byfly.by/karta-x-pon"
     XPON_CHECK_URL = (
         "http://www.byfly.by/gPON-spisok-domov?page={}&field_obl_x_value_many_to_one={}&field_street_x_value={}&"
