@@ -6,8 +6,4 @@ from .parsers.mts_parser import MTS_Parser
 from .parsers.unet_parser import UNETParser
 
 
-__version__ = "0.4.0"
-
-
-__all__ = ["ByflyParser", "CSV_Exporter", "FlynetParser",
-           "MTS_Parser", "AtlantParser", "UNETParser"]
+__version__ = "0.4.1"
