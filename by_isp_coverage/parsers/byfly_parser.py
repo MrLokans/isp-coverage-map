@@ -17,6 +17,7 @@ import aiohttp
 
 async def fetch(session, url):
     async with session.get(url) as response:
+        await asyncio.sleep(0.3)
         if str(response.status) != '200':
             print("Error occured on url {}: {}".format(response.url, response.status))
             return
@@ -97,11 +98,11 @@ class ByflyParser(BaseParser):
         with aiohttp.ClientSession(loop=loop) as session:
             response_contents = loop.run_until_complete(fetch_all(session, links, loop))
 
-        for r in response_contents:
-            if not r:
+        for page_content in response_contents:
+            if not page_content:
                 continue
 
-            connections = self._connections_from_page(r)
+            connections = self._connections_from_page(page_content)
             if self.validator:
                 yield from self.validator.validate_connections(connections)
             else:

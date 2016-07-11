@@ -53,7 +53,7 @@ class MTS_Parser(BaseParser):
                                      .strip()
             del results[id_]['name']
         for k, v in results.items():
-            c = Connection("mts", "", v['city'], v['street'],
+            c = Connection(self.PARSER_NAME, "", v['city'], v['street'],
                            v['house'], v['status'])
             if self.validator:
                 yield from self.validator.validate_connections([c])
