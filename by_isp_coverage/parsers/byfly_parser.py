@@ -149,7 +149,7 @@ class ByflyParser(BaseParser):
                 for field_name in search_fields)
 
     def _connection_from_row(self, row):
-        connection = Connection(self.FIELD_CLASS_MAP["provider"],
+        connection = Connection(self.PARSER_NAME,
                                 *self._row_connection_components(row))
         return connection
 

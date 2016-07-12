@@ -80,12 +80,11 @@ class UNETParser(BaseParser):
         return self.coordinate_obtainer.get_points(street_data)
 
     def __connections_from_street(self, street):
-        provider = "unet"
-        region = u"Минск"
-        city = u"Минск"
-        status = u"Есть подключение"
+        region = "Минск"
+        city = "Минск"
+        status = "Есть подключение"
         for h in self._house_list_for_street(street):
-            yield Connection(provider=provider, region=region,
+            yield Connection(provider=self.PARSER_NAME, region=region,
                              city=city, street=street[1], status=status,
                              house=h)
 

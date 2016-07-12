@@ -72,12 +72,11 @@ class FlynetParser(BaseParser):
         return house_numbers
 
     def __connections_from_street(self, street):
-        provider = "flynet"
         region = u"Минск"
         city = u"Минск"
         status = u"Есть подключение"
         for h in self._house_list_for_street(street):
-            yield Connection(provider=provider, region=region,
+            yield Connection(provider=self.PARSER_NAME, region=region,
                              city=city, street=street, status=status,
                              house=h)
 
