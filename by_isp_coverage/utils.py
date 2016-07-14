@@ -1,3 +1,4 @@
+from .parsers.atlant_parser import AtlantParser
 from .parsers.byfly_parser import ByflyParser
 from .parsers.mts_parser import MTS_Parser
 from .parsers.unet_parser import UNETParser
@@ -5,13 +6,31 @@ from .parsers.flynet_parser import FlynetParser
 
 
 def get_parsers():
-    return [ByflyParser, FlynetParser, MTS_Parser, UNETParser]
+    """Returns all available parser classes"""
+    return [AtlantParser, ByflyParser, FlynetParser, MTS_Parser, UNETParser]
 
 
-def get_parser_by_name(parsers, name):
+def get_parser_class_by_name(name, parsers=None):
+    """Returns parser instance with the given name from supplied list of parsers,
+    otherwise raise NameError exception. If no parsers supplied it will use
+    all present ones"""
+    if parsers is None:
+        parsers = get_parsers()
     for parser_cls in parsers:
         if parser_cls.PARSER_NAME.lower() == name.lower():
-            parser = parser_cls()
-            return parser
+            return parser_cls
     else:
-        raise NameError("Incorrect parser name")
+        raise NameError("Incorrect parser name: {}".format(name))
+
+
+def get_parser_by_name(name, parsers=None,
+                       coordinate_obtainer=None,
+                       validator=None):
+    """Returns parser instance with the given name from supplied list of parsers,
+    otherwise raise NameError exception. If no parsers supplied it will use
+    all present ones.
+    Validator and coordinate obtainer instances may also be supplied"""
+    if parsers is None:
+        parsers = get_parsers()
+    return get_parser_class_by_name(name, parsers)(coordinate_obtainer,
+                                                   validator)
