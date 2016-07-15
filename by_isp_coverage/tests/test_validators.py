@@ -2,7 +2,7 @@ import unittest
 
 
 from ..connection import Connection
-from ..validators import ConnectionValidator
+from ..validators import ConnectionValidator, Toponym
 
 
 class BaseCase(unittest.TestCase):
@@ -166,3 +166,30 @@ class TestArtificialPeopleValidation(BaseCase):
         validated = list(self.validator._validate_house([test_c]))
         expected_result = self.create_connection(house="2", status="Here I am (юридические лица)")
         self.assertEqual(validated, [expected_result])
+
+
+class TestToponymsParsing(BaseCase):
+
+    def test_simple_street_name_parsed(self):
+        test_s = 'улица Алибегова'
+        t = Toponym(test_s)
+        self.assertEqual(t._original_str, test_s)
+        self.assertEqual(t.type, 'улица')
+        self.assertEqual(t.name, 'Алибегова')
+
+    def test_street_test_cases(self):
+        # "1 переулок Урицкого" - кто вообще придумал такие названия!?
+        test_data = [
+            ("Ленина", "улица", "Ленина"),
+            ("1 мая", "улица", "1 мая"),
+            ("28 Июля ул.", "улица", "28 июля"),
+            ("50 ЛЕТ ПОБЕДЫ УЛ.", "улица", "50 Лет Победы"),
+            ("ул. Якубовского", "улица", "Якубовского"),
+            ("ул. Ф.Скорины", "улица", "Ф.Скорины"),
+            ("УЛ. АСОНАЛИЕВА", "улица", "Асоналиева"),
+            ("УЛИЦА АСОНАЛИЕВА", "улица", "Асоналиева"),
+        ]
+        for s, expected_type, expected_name in test_data:
+            t = Toponym(s)
+            self.assertEqual(t.type, expected_type)
+            self.assertEqual(t.name, expected_name)
