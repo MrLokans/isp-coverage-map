@@ -112,13 +112,21 @@ class Toponym(object):
     """This class handles toponyms
     parsing and formatting"""
 
-    def __init__(self, s):
+    SUPPORTED_TYPES = ('улица', 'переулок', 'проспект', 'проезд',
+                       'бульвар', 'микрорайон')
+
+    # тракт, площадь, шоссе??
+
+    def __init__(self, s, default_type="улица"):
         """
         Builds new toponym object from string
         :param s: string to build toponym from (e.g. 'ул. Красноармейская')
+        :param default_type: default type to be used if it is not possible to coeectly parse name
+        :type default_type: str or unicode
         :type s: str or unicode
         """
         self._original_str = s
+        self._type, self._name = self.tokenize(s)
 
     @property
     def type(self):
@@ -127,3 +135,10 @@ class Toponym(object):
     @property
     def name(self):
         return self._name
+
+    def tokenize(self, s):
+        """
+        Splits toponym into correct type and name,
+        if impossible - throws ToponymParsingError
+        """
+        return "", ""
