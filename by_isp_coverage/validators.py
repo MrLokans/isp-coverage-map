@@ -106,3 +106,24 @@ class ConnectionValidator(object):
 
     def validate_street_field(self, street):
         return [street]
+
+
+class Toponym(object):
+    """This class handles toponyms
+    parsing and formatting"""
+
+    def __init__(self, s):
+        """
+        Builds new toponym object from string
+        :param s: string to build toponym from (e.g. 'ул. Красноармейская')
+        :type s: str or unicode
+        """
+        self._original_str = s
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def name(self):
+        return self._name
