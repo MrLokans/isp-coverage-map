@@ -1,4 +1,6 @@
 import json
+import logging
+import queue
 
 import requests
 from bs4 import BeautifulSoup as bs
@@ -15,20 +17,23 @@ import asyncio
 import aiohttp
 
 
-async def fetch(session, url):
+logger = logging.getLogger("parsers.byfly_parser")
+
+async def fetch(session, url, error_queue):
     async with session.get(url) as response:
-        await asyncio.sleep(0.3)
         if str(response.status) != '200':
-            print("Error occured on url {}: {}".format(response.url, response.status))
+            print("Error occured on url {}: {}, putting in the error queue".format(response.url, response.status))
+            error_queue.put(url)
             return
         return await response.text()
 
 async def fetch_all(session, urls, loop):
+    error_queue = queue.Queue()
     results = await asyncio.gather(
-        *[fetch(session, url) for url in urls],
+        *[fetch(session, url, error_queue) for url in urls],
         return_exceptions=True  # default is false, that would raise
     )
-    return results
+    return results, error_queue
 
 
 class ByflyParser(BaseParser):
@@ -96,7 +101,15 @@ class ByflyParser(BaseParser):
 
         response_contents = []
         with aiohttp.ClientSession(loop=loop) as session:
-            response_contents = loop.run_until_complete(fetch_all(session, links, loop))
+            response_contents, error_queue = loop.run_until_complete(fetch_all(session, links, loop))
+
+        # Syncronously obtain data from error urls
+        while not error_queue.empty():
+            try:
+                u = error_queue.get()
+                response_contents.append(requests.get(u)).text
+            except Exception as e:
+                logger.exception("Error parsing url: {}".format(u))
 
         for page_content in response_contents:
             if not page_content:
