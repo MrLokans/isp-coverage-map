@@ -6,4 +6,4 @@ from .parsers.mts_parser import MTS_Parser
 from .parsers.unet_parser import UNETParser
 
 
-__version__ = "0.4.4"
+__version__ = "0.4.5"
