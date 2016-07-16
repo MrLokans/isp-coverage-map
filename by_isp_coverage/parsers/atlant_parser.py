@@ -16,7 +16,7 @@ class AtlantParser(BaseParser):
     PARSER_URL = "http://telecom.by"
     STREET_SEARCH_URL = "http://telecom.by/at/zone/autocomplete/streets/2"
 
-    def __init__(self, coordinate_obtainer, validator=None):
+    def __init__(self, coordinate_obtainer=None, validator=None):
         self._session = requests.Session()
         self.coordinate_obtainer = coordinate_obtainer
         self.validator = validator

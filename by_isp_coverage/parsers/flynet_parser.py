@@ -13,7 +13,7 @@ class FlynetParser(BaseParser):
     PARSER_NAME = "flynet"
     PARSER_URL = "https://flynet.by"
 
-    def __init__(self, coordinate_obtainer, validator=None):
+    def __init__(self, coordinate_obtainer=None, validator=None):
         self.coordinate_obtainer = coordinate_obtainer
         self.validator = validator
 
