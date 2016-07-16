@@ -177,12 +177,34 @@ class TestToponymsParsing(BaseCase):
         self.assertEqual(t.type, 'улица')
         self.assertEqual(t.name, 'Алибегова')
 
+    def test_toponym_name_normalization(self):
+        test_data = [
+            ("ленина", "Ленина"),
+            ("ЛЕНИНА", "Ленина"),
+        ]
+        for name, expected_name in test_data:
+            self.assertEqual(Toponym._normalize_name(name), expected_name)
+
+    def test_street_type_and_name_extracted(self):
+        test_data = [
+            ("ленина", None, "ленина"),
+            ("ул. ленина", "улица", "ленина"),
+            ("УЛ. ЛЕНИНА", "улица", "ЛЕНИНА"),
+            ("УЛИЦА ЛЕНИНА", "улица", "ЛЕНИНА"),
+            ("ЛЕНИНА УЛ.", "улица", "ЛЕНИНА"),
+
+        ]
+        for name, expected_type, expected_name in test_data:
+            t = Toponym("")
+            self.assertEqual(t._extract_type_and_name(name),
+                             (expected_type, expected_name))
+
     def test_street_test_cases(self):
         # "1 переулок Урицкого" - кто вообще придумал такие названия!?
         test_data = [
             ("Ленина", "улица", "Ленина"),
-            ("1 мая", "улица", "1 мая"),
-            ("28 Июля ул.", "улица", "28 июля"),
+            ("1 мая", "улица", "1 Мая"),
+            ("28 Июля ул.", "улица", "28 Июля"),
             ("50 ЛЕТ ПОБЕДЫ УЛ.", "улица", "50 Лет Победы"),
             ("ул. Якубовского", "улица", "Якубовского"),
             ("ул. Ф.Скорины", "улица", "Ф.Скорины"),
