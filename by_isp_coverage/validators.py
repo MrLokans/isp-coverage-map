@@ -114,6 +114,9 @@ class Toponym(object):
 
     SUPPORTED_TYPES = ('улица', 'переулок', 'проспект', 'проезд',
                        'бульвар', 'микрорайон')
+    TYPE_MAP = (
+        (regex.compile(r"(ул\.|улица)", regex.IGNORECASE), "улица"),
+    )
 
     # тракт, площадь, шоссе??
 
@@ -126,7 +129,8 @@ class Toponym(object):
         :type s: str or unicode
         """
         self._original_str = s
-        self._type, self._name = self.tokenize(s)
+        self._default_type = default_type
+        self.tokenize(s)
 
     @property
     def type(self):
@@ -136,9 +140,28 @@ class Toponym(object):
     def name(self):
         return self._name
 
-    def tokenize(self, s):
+    def tokenize(self, name):
         """
         Splits toponym into correct type and name,
         if impossible - throws ToponymParsingError
         """
-        return "", ""
+        _type, name = self._extract_type_and_name(name)
+        if _type is None:
+            _type = self._default_type
+        self._type, self._name = _type, self._normalize_name(name)
+
+    def _extract_type_and_name(self, name):
+        for type_regex, type_value in self.TYPE_MAP:
+            match = type_regex.search(name)
+            if match:
+                new_name = name.replace(name[match.start():match.end()], "")
+                return type_value, new_name.strip()
+        return None, name.strip()
+
+    @classmethod
+    def _normalize_name(self, name, ignored=None):
+        """
+        Change case of letters in the street name to an
+        appropriate format.
+        """
+        return name.title()
