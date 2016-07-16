@@ -105,7 +105,7 @@ class ConnectionValidator(object):
         return [provider]
 
     def validate_street_field(self, street):
-        return [street]
+        return [Toponym(street, default_type="улица").format()]
 
 
 class Toponym(object):
@@ -114,8 +114,19 @@ class Toponym(object):
 
     SUPPORTED_TYPES = ('улица', 'переулок', 'проспект', 'проезд',
                        'бульвар', 'микрорайон')
+    MANUAL_MAP = {
+        "3ий пер Волчецкого": ("переулок", "3-й Волчецкого"),
+        "А/Г ЛЕСНОЙ АЛЕКСАНДРОВА УЛ.": ("улица", "Александрова (агрогородок Лесной)"),
+    }
     TYPE_MAP = (
-        (regex.compile(r"(ул\.|улица)", regex.IGNORECASE), "улица"),
+        (regex.compile(r"(прз\.|пр\-д|проезд)", regex.IGNORECASE), "проезд"),
+        (regex.compile(r"(пос\.|поселок)", regex.IGNORECASE), "поселок"),
+        (regex.compile(r"(мр\-н|микрорайон)", regex.IGNORECASE), "микрорайон"),
+        (regex.compile(r"(а\/г)", regex.IGNORECASE), "агрогородок"),
+        (regex.compile(r"(переулок|пер\.)", regex.IGNORECASE), "переулок"),
+        (regex.compile(r"(б\-р|бул\.|бульвар)", regex.IGNORECASE), "бульвар"),
+        (regex.compile(r"(ул\,|\, ул\.|\, ул|ул\.|улица)", regex.IGNORECASE), "улица"),
+        (regex.compile(r"(проспект|пр-кт|пр-т|пр\.)", regex.IGNORECASE), "проспект"),
     )
 
     # тракт, площадь, шоссе??
@@ -145,10 +156,20 @@ class Toponym(object):
         Splits toponym into correct type and name,
         if impossible - throws ToponymParsingError
         """
+        if name in self.MANUAL_MAP:
+            self._type, self._name = self.MANUAL_MAP[name]
+            return
         _type, name = self._extract_type_and_name(name)
         if _type is None:
             _type = self._default_type
         self._type, self._name = _type, self._normalize_name(name)
+
+    def format(self, format=""):
+        """Formats toponym's name.
+        Currently it only uses default implementation
+        """
+        # TODO: add formatting strings support
+        return "{type} {name}".format(type=self.type, name=self.name)
 
     def _extract_type_and_name(self, name):
         for type_regex, type_value in self.TYPE_MAP:

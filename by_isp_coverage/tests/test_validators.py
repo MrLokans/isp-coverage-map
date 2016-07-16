@@ -199,6 +199,16 @@ class TestToponymsParsing(BaseCase):
             self.assertEqual(t._extract_type_and_name(name),
                              (expected_type, expected_name))
 
+    def test_street_formatting(self):
+        test_data = [
+            "ленина", "ул. ленина", "УЛ. ЛЕНИНА",
+            "УЛИЦА ЛЕНИНА", "улица Ленина", "ЛЕНИНА УЛ."
+        ]
+        correct_name = "улица Ленина"
+        for name in test_data:
+            t = Toponym(name, default_type="улица")
+            self.assertEqual(t.format(), correct_name)
+
     def test_street_test_cases(self):
         # "1 переулок Урицкого" - кто вообще придумал такие названия!?
         test_data = [
@@ -210,6 +220,10 @@ class TestToponymsParsing(BaseCase):
             ("ул. Ф.Скорины", "улица", "Ф.Скорины"),
             ("УЛ. АСОНАЛИЕВА", "улица", "Асоналиева"),
             ("УЛИЦА АСОНАЛИЕВА", "улица", "Асоналиева"),
+            ("ХАРЬКОВСКАЯ УЛ.", "улица", "Харьковская"),
+            ("Красноармейская Ул,", "улица", "Красноармейская"),
+            ("Индустриальный Прз.", "проезд", "Индустриальный"),
+            ("Звёздный Пр-Д", "проезд", "Звёздный"),
         ]
         for s, expected_type, expected_name in test_data:
             t = Toponym(s)
