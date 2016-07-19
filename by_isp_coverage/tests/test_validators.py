@@ -177,6 +177,11 @@ class TestToponymsParsing(BaseCase):
         self.assertEqual(t.type, 'улица')
         self.assertEqual(t.name, 'Алибегова')
 
+    def test_toponym_post_validation(self):
+        test_s = 'улица Я.Купалы'
+        t = Toponym(test_s)
+        self.assertEqual(t.name, 'Янки Купалы')
+
     def test_toponym_name_normalization(self):
         test_data = [
             ("ленина", "Ленина"),

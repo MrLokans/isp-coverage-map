@@ -118,6 +118,20 @@ class Toponym(object):
         "3ий пер Волчецкого": ("переулок", "3-й Волчецкого"),
         "А/Г ЛЕСНОЙ АЛЕКСАНДРОВА УЛ.": ("улица", "Александрова (агрогородок Лесной)"),
     }
+
+    CORRESPONDINGS = {
+        "9Мая": "9 Мая",
+        "Б.Хмельницкого": "Богдана Хмельницкого",
+        "Б. Хмельницкого": "Богдана Хмельницкого",
+        "К. Маркса": "Карла Маркса",
+        "К.Маркса": "Карла Маркса",
+        "К.Либкнехта": "Карла Либкнехта",
+        "К. Либкнехта": "Карла Либкнехта",
+        "Я. Колоса": "Якуба Колоса",
+        "Я.Колоса": "Якуба Колоса",
+        "Я.Купалы": "Янки Купалы",
+        "Я. Купалы": "Янки Купалы",
+    }
     TYPE_MAP = (
         (regex.compile(r"(прз\.|пр\-д|проезд)", regex.IGNORECASE), "проезд"),
         (regex.compile(r"(пос\.|поселок)", regex.IGNORECASE), "поселок"),
@@ -142,6 +156,7 @@ class Toponym(object):
         self._original_str = s
         self._default_type = default_type
         self.tokenize(s)
+        self.post_validate()
 
     @property
     def type(self):
@@ -186,3 +201,12 @@ class Toponym(object):
         appropriate format.
         """
         return name.title()
+
+    def post_validate(self):
+        """
+        Some entries have to be updated manually
+        (e.g. К.Маркса should be turned into Карла Маркса), this
+        method runs those manual validations
+        """
+        if self._name in self.CORRESPONDINGS:
+            self._name = self.CORRESPONDINGS[self._name]
