@@ -16,21 +16,25 @@ import regex
 import asyncio
 import aiohttp
 
+# Just empirically chosen, no benchmarks were made
+MAX_NUMBER_OF_CONCURRENT_CONNECTIONS = 4
 
 logger = logging.getLogger("parsers.byfly_parser")
 
-async def fetch(session, url, error_queue):
-    async with session.get(url) as response:
-        if str(response.status) != '200':
-            print("Error occured on url {}: {}, putting in the error queue".format(response.url, response.status))
-            error_queue.put(url)
-            return
-        return await response.text()
+async def fetch(session, url, sem, error_queue):
+    with (await sem):
+        async with session.get(url) as response:
+            if str(response.status) != '200':
+                print("Error occured on url {}: {}, putting in the error queue".format(response.url, response.status))
+                error_queue.put(url)
+                return
+            return await response.text()
 
 async def fetch_all(session, urls, loop):
+    sem = asyncio.Semaphore(MAX_NUMBER_OF_CONCURRENT_CONNECTIONS)
     error_queue = queue.Queue()
     results = await asyncio.gather(
-        *[fetch(session, url, error_queue) for url in urls],
+        *[fetch(session, url, sem, error_queue) for url in urls],
         return_exceptions=True  # default is false, that would raise
     )
     return results, error_queue
