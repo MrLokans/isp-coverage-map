@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup as bs
 
 from .base import BaseParser
 from ..coordinate_obtainer import CoordinateObtainer
+from ..connection import Connection
+from ..validators import ConnectionValidator
 
 
 logger = logging.getLogger(__name__)
@@ -27,11 +29,23 @@ class AtlantParser(BaseParser):
                        for street_name in street_names]
         return self.coordinate_obtainer.get_points(houses_data)
 
+    def __connections_from_street(self, street):
+        region = "Минск"
+        city = "Минск"
+        status = "Есть подключение"
+        for h in self.get_house_list_for_street(street):
+            yield Connection(provider=self.PARSER_NAME, region=region,
+                             city=city, street=street, status=status,
+                             house=h.strip())
+
     def get_connections(self, city="", street="", house_number=""):
-        if self.validator:
-            return self.validator.validate_connections([])
-        else:
-            return []
+        streets = self.get_street_names()
+        for street in streets:
+            connections = self.__connections_from_street(street)
+            if self.validator:
+                yield from self.validator.validate_connections(connections)
+            else:
+                yield from connections
 
     def _generate_search_url(self, l):
         return "/".join((self.STREET_SEARCH_URL, l))
@@ -97,9 +111,11 @@ class AtlantParser(BaseParser):
 
 
 def main():
-    parser = AtlantParser(CoordinateObtainer())
-    points = list(parser.get_points())
-    print(points)
+    parser = AtlantParser(coordinate_obtainer=CoordinateObtainer(), validator=None)
+    # points = list(parser.get_points())
+    # print(points)
+    for c in parser.get_connections():
+        print(c)
 
 
 if __name__ == '__main__':
