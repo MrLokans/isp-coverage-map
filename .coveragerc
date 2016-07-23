@@ -1,0 +1,4 @@
+[html]
+directory = coverage_html_report
+[run]
+omit = by_isp_coverage/tests/*
