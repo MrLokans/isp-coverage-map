@@ -110,16 +110,28 @@ class TestHouseValidation(BaseCase):
 
 class TestBuildingNumberValidations(BaseCase):
 
+    def test_decimal_building_number_parsed_correctly(self):
+        connections = [self.create_connection(house="29")]
+        result = list(self.validator._validate_house(connections))
+        expected_result = [self.create_connection(house="29")]
+        self.assertEqual(result, expected_result)
+
     def test_building_numbers_parsed_correctly(self):
         connections = [self.create_connection(house="29А")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="29 (корпус А)")]
+        expected_result = [self.create_connection(house="29А")]
+        self.assertEqual(result, expected_result)
+
+    def test_building_number_with_letter_uppercased(self):
+        connections = [self.create_connection(house="29а")]
+        result = list(self.validator._validate_house(connections))
+        expected_result = [self.create_connection(house="29А")]
         self.assertEqual(result, expected_result)
 
     def test_building_numbers_with_dash_parsed_correctly(self):
         connections = [self.create_connection(house="29/1")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="29 (корпус 1)")]
+        expected_result = [self.create_connection(house="29/1")]
         self.assertEqual(result, expected_result)
 
     def test_building_numbers_with_letter_parsed_correctly(self):
@@ -137,13 +149,13 @@ class TestBuildingNumberValidations(BaseCase):
     def test_building_numbers_with_space_parsed_correctly(self):
         connections = [self.create_connection(house="8 Б")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="8 (корпус Б)")]
+        expected_result = [self.create_connection(house="8Б")]
         self.assertEqual(result, expected_result)
 
     def test_building_numbers_with_hyphen_parsed_correctly(self):
         connections = [self.create_connection(house="8-2")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="8 (корпус 2)")]
+        expected_result = [self.create_connection(house="8-2)")]
         self.assertEqual(result, expected_result)
 
     def test_building_numbers_with_letter_and_comma_parsed_correctly(self):
@@ -236,10 +248,6 @@ class TestToponymsParsing(BaseCase):
             self.assertEqual(t.name, expected_name)
 
     def test_pre_validation_hook(self):
-        """If toponym name is found in pre_replacement_map all
-        validations are skipped and the value is replaced taken
-        from the map
-        """
         replacement_map = {'тест': ('улица', 'новая тестовая')}
         c = self.create_connection(street="тест")
         v = ConnectionValidator(pre_replacement_street_map=replacement_map)
