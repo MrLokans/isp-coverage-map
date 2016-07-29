@@ -234,3 +234,21 @@ class TestToponymsParsing(BaseCase):
             t = Toponym(s)
             self.assertEqual(t.type, expected_type)
             self.assertEqual(t.name, expected_name)
+
+    def test_pre_validation_hook(self):
+        """If toponym name is found in pre_replacement_map all
+        validations are skipped and the value is replaced taken
+        from the map
+        """
+        replacement_map = {'тест': ('улица', 'новая тестовая')}
+        c = self.create_connection(street="тест")
+        v = ConnectionValidator(pre_replacement_street_map=replacement_map)
+        validated = list(v.validate_connections([c]))
+        self.assertEqual(validated[0].street, 'улица новая тестовая')
+
+    def test_post_validation_hook(self):
+        replacement_map = {'К. Маркса': 'Карла Маркса'}
+        c = self.create_connection(street="к. маркса")
+        v = ConnectionValidator(post_replacement_street_map=replacement_map)
+        validated = list(v.validate_connections([c]))
+        self.assertEqual(validated[0].street, 'улица Карла Маркса')

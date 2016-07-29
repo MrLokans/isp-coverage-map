@@ -1,6 +1,7 @@
 from typing import Iterable
 
 import regex
+from collections import abc
 
 from .connection import Connection
 
@@ -16,9 +17,20 @@ def is_for_artificial_person(house_str):
 
 
 class ConnectionValidator(object):
-    def __init__(self, fields=None):
-        self.fields = fields if fields else ("house", "provider", "region", "city",
-                                             "street", "status")
+    def __init__(self, fields=None,
+                 pre_replacement_street_map=None,
+                 post_replacement_street_map=None):
+        """
+        :param fields: list of field names to be validated
+        """
+        self.fields = fields if fields else ("house", "provider", "region",
+                                             "city", "street", "status")
+        self.pre_replacement_street_map = pre_replacement_street_map\
+                                          if pre_replacement_street_map\
+                                          else {}
+        self.post_replacement_street_map = post_replacement_street_map\
+                                           if post_replacement_street_map\
+                                           else {}
 
     def validate_connections(self,
                              connections: Iterable[Connection]) -> Iterable[Connection]:
@@ -32,10 +44,18 @@ class ConnectionValidator(object):
                          connections: Iterable[Connection],
                          field: str) -> Iterable[Connection]:
         """An internal method running validations against the specified field.
-        It looks for methods like _validate_{field}_field defined in the validator class
-        and calls them on the specified connection field.
-        Methods return sequence of validated field values and, if required,
-        callbacks that, in their turn mutate original connection object.
+        It looks for method _validate_{field}_field
+        defined in the validator class and calls it against
+        every connection object.
+        Validation method returns sequence of validated field values
+        and, if required, callbacks that may mutate original connection object.
+
+        Note that each of validators should return a list of fields instead
+        of a single validated field value.
+
+        :param connections: Sequence of connections to be validated
+        :param field: string, name of the field to be validated
+        :return: new sequence of validated connection objects
         """
         validate_strategy = getattr(self, "validate_{}_field".format(field))
         constructor = Connection.from_modified_connection
@@ -105,7 +125,11 @@ class ConnectionValidator(object):
         return [provider]
 
     def validate_street_field(self, street):
-        return [Toponym(street, default_type="улица").format()]
+        t = Toponym(street,
+                    default_type="улица",
+                    pre_replacement=self.pre_replacement_street_map,
+                    post_replacement=self.post_replacement_street_map)
+        return [t.format()]
 
 
 class Toponym(object):
@@ -114,12 +138,12 @@ class Toponym(object):
 
     SUPPORTED_TYPES = ('улица', 'переулок', 'проспект', 'проезд',
                        'бульвар', 'микрорайон')
-    MANUAL_MAP = {
+    PRE_VALIDATORS = {
         "3ий пер Волчецкого": ("переулок", "3-й Волчецкого"),
         "А/Г ЛЕСНОЙ АЛЕКСАНДРОВА УЛ.": ("улица", "Александрова (агрогородок Лесной)"),
     }
 
-    CORRESPONDINGS = {
+    POST_VALIDATORS = {
         "9Мая": "9 Мая",
         "Б.Хмельницкого": "Богдана Хмельницкого",
         "Б. Хмельницкого": "Богдана Хмельницкого",
@@ -145,16 +169,25 @@ class Toponym(object):
 
     # тракт, площадь, шоссе??
 
-    def __init__(self, s, default_type="улица"):
+    def __init__(self, s, default_type="улица",
+                 pre_replacement=None,
+                 post_replacement=None):
         """
         Builds new toponym object from string
         :param s: string to build toponym from (e.g. 'ул. Красноармейская')
-        :param default_type: default type to be used if it is not possible to coeectly parse name
+        :param default_type: default type to be used if
+        it is not possible to correctly parse name
+        :param post_replacement: mapping of toponyms names that should be
+        manually replaced after performing all of validations.
         :type default_type: str or unicode
         :type s: str or unicode
         """
         self._original_str = s
         self._default_type = default_type
+        if pre_replacement and isinstance(pre_replacement, abc.Mapping):
+            self.PRE_VALIDATORS.update(pre_replacement)
+        if post_replacement and isinstance(post_replacement, abc.Mapping):
+            self.POST_VALIDATORS.update(post_replacement)
         self.tokenize(s)
         self.post_validate()
 
@@ -171,8 +204,12 @@ class Toponym(object):
         Splits toponym into correct type and name,
         if impossible - throws ToponymParsingError
         """
-        if name in self.MANUAL_MAP:
-            self._type, self._name = self.MANUAL_MAP[name]
+        if name in self.PRE_VALIDATORS:
+            """If toponym name is found in pre_replacement_map all
+            validations are skipped and the value is replaced taken
+            from the map
+            """
+            self._type, self._name = self.PRE_VALIDATORS[name]
             return
         _type, name = self._extract_type_and_name(name)
         if _type is None:
@@ -208,5 +245,5 @@ class Toponym(object):
         (e.g. К.Маркса should be turned into Карла Маркса), this
         method runs those manual validations
         """
-        if self._name in self.CORRESPONDINGS:
-            self._name = self.CORRESPONDINGS[self._name]
+        if self._name in self.POST_VALIDATORS:
+            self._name = self.POST_VALIDATORS[self._name]
