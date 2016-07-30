@@ -155,7 +155,7 @@ class TestBuildingNumberValidations(BaseCase):
     def test_building_numbers_with_hyphen_parsed_correctly(self):
         connections = [self.create_connection(house="8-2")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="8-2)")]
+        expected_result = [self.create_connection(house="8-2")]
         self.assertEqual(result, expected_result)
 
     def test_building_numbers_with_letter_and_comma_parsed_correctly(self):
@@ -167,7 +167,7 @@ class TestBuildingNumberValidations(BaseCase):
     def test_building_numbers_with_space_and_formatted(self):
         connections = [self.create_connection(house="56а корпус 1")]
         result = list(self.validator._validate_house(connections))
-        expected_result = [self.create_connection(house="56а (корпус 1)")]
+        expected_result = [self.create_connection(house="56А (корпус 1)")]
         self.assertEqual(result, expected_result)
 
 

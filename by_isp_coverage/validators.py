@@ -8,7 +8,24 @@ from .connection import Connection
 CITY_PARTS_TO_EXCLUDE = ("д.г.п.", "п.г.т", "аг.", "г.п.", "агр.",
                          "д.", "г.", "п.", "к.")
 
-RE_BUILDING_NUMBER = regex.compile(r'^(?P<house_number>\d+),?(?P<delimiter>([-/\s]*| (к|К)\.[ ]?))()()(?P<building>\w+)$', regex.UNICODE)
+# reference article: http://bit.ly/2aDXXAd
+RE_HOUSE_NUMBER = regex.compile(r'''^\d+ # Digital house number
+                                    (?P<splitter>[-\/])? # optional splitter
+                                    (?(splitter) # if splitter group exists
+                                        (\d+|[А-Яа-я]+) # after it should be digits or letters
+                                            |  # otherwise
+                                        [А-Яа-я]?) # only letters
+                                ''', regex.UNICODE | regex.X)
+
+BUILDING_NUM_RE_STR = r'''^(?P<house_number>\d+(?P<splitter>[-\/])?(?(splitter)(\d+|[А-Яа-я]+)|[А-Яа-я]?))  # see explanation above
+                          ,?\s*  # Possible splitters
+                          (корпус|корп\.|к\.|к) # building number identifier
+                          \s? # Possible splitter
+                          (?P<building>[\d]+) # Actual decimal building number
+                        '''
+
+RE_BUILDING_NUMBER = regex.compile(BUILDING_NUM_RE_STR,
+                                   regex.UNICODE | regex.X)
 
 
 def is_for_artificial_person(house_str):
@@ -94,7 +111,7 @@ class ConnectionValidator(object):
         match = RE_BUILDING_NUMBER.match(house)
         if match:
             d = match.groupdict()
-            new_house = "{} (корпус {})".format(d['house_number'],
+            new_house = "{} (корпус {})".format(d['house_number'].upper(),
                                                 d['building'])
             return [new_house]
         if is_for_artificial_person(house):
@@ -113,6 +130,8 @@ class ConnectionValidator(object):
             house = house.replace(" ", "")
             houses = [h for h in house.split(",") if h != ""]
             return houses
+        if RE_HOUSE_NUMBER.match(house):
+            return [house.upper().replace(' ', '')]
         return [house]
 
     def validate_status_field(self, status):
@@ -163,11 +182,11 @@ class Toponym(object):
         (regex.compile(r"(а\/г)", regex.IGNORECASE), "агрогородок"),
         (regex.compile(r"(переулок|пер\.)", regex.IGNORECASE), "переулок"),
         (regex.compile(r"(б\-р|бул\.|бульвар)", regex.IGNORECASE), "бульвар"),
-        (regex.compile(r"(ул\,|\, ул\.|\, ул|ул\.|улица)", regex.IGNORECASE), "улица"),
-        (regex.compile(r"(проспект|пр-кт|пр-т|пр\.)", regex.IGNORECASE), "проспект"),
+        (regex.compile(r"(ул\,|\, ул\.|\, ул|ул\.|улица)",
+                       regex.IGNORECASE), "улица"),
+        (regex.compile(r"(проспект|пр-кт|пр-т|пр\.)",
+                       regex.IGNORECASE), "проспект"),
     )
-
-    # тракт, площадь, шоссе??
 
     def __init__(self, s, default_type="улица",
                  pre_replacement=None,
@@ -198,6 +217,10 @@ class Toponym(object):
     @property
     def name(self):
         return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
 
     def tokenize(self, name):
         """
