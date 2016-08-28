@@ -1,10 +1,9 @@
-import re
 import unittest
 
 from unittest.mock import MagicMock
 
 from .base import TestCaseBase
-from ..parsers.unet_parser import UNETParser
+from by_isp_coverage.parsers.unet_parser import UNETParser
 
 
 class TestUNETParser(TestCaseBase):

@@ -1,7 +1,6 @@
-import re
 import unittest
 
-from ..connection import Connection
+from by_isp_coverage.connection import Connection
 
 
 class TestConnectionClass(unittest.TestCase):

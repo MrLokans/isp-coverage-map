@@ -1,10 +1,9 @@
-import re
 import unittest
 
 from .base import TestCaseBase
 
-from ..connection import Connection
-from ..parsers.byfly_parser import ByflyParser
+from by_isp_coverage.connection import Connection
+from by_isp_coverage.parsers.byfly_parser import ByflyParser
 
 
 class TestHouseSplitting(TestCaseBase):

@@ -2,7 +2,7 @@ import re
 import unittest
 
 from .base import TestCaseBase
-from ..parsers.mts_parser import MTS_Parser
+from by_isp_coverage.parsers.mts_parser import MTS_Parser
 
 
 class TestMTSParser(TestCaseBase):

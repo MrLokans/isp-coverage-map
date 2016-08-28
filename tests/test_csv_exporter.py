@@ -2,9 +2,7 @@ from io import StringIO
 import unittest
 from collections import namedtuple
 
-from ..csv_exporter import CSV_Exporter
-from ..connection import Connection
-from ..point import Point
+from by_isp_coverage.csv_exporter import CSV_Exporter
 
 
 class TestCSVExporterClass(unittest.TestCase):

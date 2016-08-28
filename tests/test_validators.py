@@ -1,8 +1,8 @@
 import unittest
 
 
-from ..connection import Connection
-from ..validators import ConnectionValidator, Toponym
+from by_isp_coverage.connection import Connection
+from by_isp_coverage.validators import ConnectionValidator, Toponym
 
 
 class BaseCase(unittest.TestCase):
