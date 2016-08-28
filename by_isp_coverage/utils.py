@@ -1,5 +1,6 @@
 from by_isp_coverage.parsers.atlant_parser import AtlantParser
 from by_isp_coverage.parsers.byfly_parser import ByflyParser
+from by_isp_coverage.parsers.infolan_parser import InfolanParser
 from by_isp_coverage.parsers.mts_parser import MTS_Parser
 from by_isp_coverage.parsers.unet_parser import UNETParser
 from by_isp_coverage.parsers.flynet_parser import FlynetParser
@@ -7,7 +8,8 @@ from by_isp_coverage.parsers.flynet_parser import FlynetParser
 
 def get_parsers():
     """Returns all available parser classes"""
-    return [AtlantParser, ByflyParser, FlynetParser, MTS_Parser, UNETParser]
+    return [AtlantParser, ByflyParser, FlynetParser,
+            InfolanParser, MTS_Parser, UNETParser]
 
 
 def get_parser_class_by_name(name, parsers=None):
