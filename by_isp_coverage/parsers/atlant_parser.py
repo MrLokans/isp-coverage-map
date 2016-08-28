@@ -1,13 +1,12 @@
 import logging
 
 import requests
-import grequests
 from bs4 import BeautifulSoup as bs
 
-from .base import BaseParser
-from ..coordinate_obtainer import CoordinateObtainer
-from ..connection import Connection
-from ..validators import ConnectionValidator
+from by_isp_coverage.parsers.base import BaseParser
+from by_isp_coverage.coordinate_obtainer import CoordinateObtainer
+from by_isp_coverage.connection import Connection
+from by_isp_coverage.validators import ConnectionValidator
 
 
 logger = logging.getLogger(__name__)

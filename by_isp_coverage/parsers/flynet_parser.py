@@ -2,8 +2,8 @@ import time
 
 import grequests
 
-from .base import BaseParser
-from ..connection import Connection
+from by_isp_coverage.parsers.base import BaseParser
+from by_isp_coverage.connection import Connection
 
 
 STREET_ID_REGEX = r"this,\"(?P<_id>\d+)\""
@@ -96,7 +96,7 @@ class FlynetParser(BaseParser):
 
 
 if __name__ == '__main__':
-    from ..coordinate_obtainer import CoordinateObtainer
+    from by_isp_coverage.coordinate_obtainer import CoordinateObtainer
     parser = FlynetParser(CoordinateObtainer())
     # points = parser.get_points()
     # print(points)

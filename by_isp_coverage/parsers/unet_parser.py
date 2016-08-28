@@ -3,10 +3,10 @@ import re
 from bs4 import BeautifulSoup as bs
 import grequests
 
-from .base import BaseParser
-from ..connection import Connection
-from ..coordinate_obtainer import CoordinateObtainer
-from ..validators import ConnectionValidator
+from by_isp_coverage.parsers.base import BaseParser
+from by_isp_coverage.connection import Connection
+from by_isp_coverage.coordinate_obtainer import CoordinateObtainer
+from by_isp_coverage.validators import ConnectionValidator
 
 import logging
 

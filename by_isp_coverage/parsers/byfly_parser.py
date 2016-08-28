@@ -5,9 +5,9 @@ import queue
 import requests
 from bs4 import BeautifulSoup as bs
 
-from .base import BaseParser
-from ..point import Point
-from ..connection import Connection
+from by_isp_coverage.parsers.base import BaseParser
+from by_isp_coverage.point import Point
+from by_isp_coverage.connection import Connection
 
 from urllib.parse import urlparse, parse_qs
 

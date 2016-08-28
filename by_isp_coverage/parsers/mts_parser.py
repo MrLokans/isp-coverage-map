@@ -3,9 +3,9 @@ from collections import defaultdict
 
 import requests
 
-from .base import BaseParser
-from ..connection import Connection
-from ..point import Point
+from by_isp_coverage.parsers.base import BaseParser
+from by_isp_coverage.connection import Connection
+from by_isp_coverage.point import Point
 
 
 class MTS_Parser(BaseParser):
@@ -68,7 +68,6 @@ class MTS_Parser(BaseParser):
 
 
 if __name__ == '__main__':
-    from ..validators import ConnectionValidator
     parser = MTS_Parser(validator=None)
     for c in parser.get_connections():
         print(c)
