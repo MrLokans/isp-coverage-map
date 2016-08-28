@@ -1,7 +1,7 @@
 import argparse
 
 import utils
-from .csv_exporter import CSV_Exporter
+from by_isp_coverage.csv_exporter import CSV_Exporter
 
 
 def parse_args():

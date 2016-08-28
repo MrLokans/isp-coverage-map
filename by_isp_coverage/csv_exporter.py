@@ -1,14 +1,20 @@
 import csv
 from inspect import isgenerator
 
-from .connection import Connection
-from .point import Point
-
 
 class CSV_Exporter(object):
+    """Class responsible from exporting
+    coordinate and connection objects into CSV files
+    """
 
     @classmethod
     def export_namedtuple_values(cls, filename, data):
+        """Export namedtuple into the given file
+
+        :param filename: path to the output file
+        :type filename: str or unicode
+        :param data: some namedtuple instance
+        """
         with open(filename, "w") as f:
             cls._export_namedtuple_values_fd(f, data)
 

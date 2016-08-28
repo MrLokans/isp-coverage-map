@@ -1,8 +1,8 @@
-from .parsers.atlant_parser import AtlantParser
-from .parsers.byfly_parser import ByflyParser
-from .parsers.mts_parser import MTS_Parser
-from .parsers.unet_parser import UNETParser
-from .parsers.flynet_parser import FlynetParser
+from by_isp_coverage.parsers.atlant_parser import AtlantParser
+from by_isp_coverage.parsers.byfly_parser import ByflyParser
+from by_isp_coverage.parsers.mts_parser import MTS_Parser
+from by_isp_coverage.parsers.unet_parser import UNETParser
+from by_isp_coverage.parsers.flynet_parser import FlynetParser
 
 
 def get_parsers():

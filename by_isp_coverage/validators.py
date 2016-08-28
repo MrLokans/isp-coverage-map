@@ -3,7 +3,7 @@ from typing import Iterable
 import regex
 from collections import abc
 
-from .connection import Connection
+from by_isp_coverage.connection import Connection
 
 CITY_PARTS_TO_EXCLUDE = ("д.г.п.", "п.г.т", "аг.", "г.п.", "агр.",
                          "д.", "г.", "п.", "к.")

@@ -111,7 +111,8 @@ class AtlantParser(BaseParser):
 
 
 def main():
-    parser = AtlantParser(coordinate_obtainer=CoordinateObtainer(), validator=None)
+    parser = AtlantParser(coordinate_obtainer=CoordinateObtainer(),
+                          validator=ConnectionValidator())
     # points = list(parser.get_points())
     # print(points)
     for c in parser.get_connections():

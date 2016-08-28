@@ -1,3 +1,8 @@
+"""
+Class representing single internet connection.
+"""
+
+
 class Connection(object):
 
     __slots__ = ('provider', 'region', 'city', 'street', 'house', 'status')
@@ -12,6 +17,13 @@ class Connection(object):
 
     @classmethod
     def from_modified_connection(cls, connection, **modified_fields):
+        """Build new connection from the modified field values, passed
+        as kwargs
+        :param connection: reference connection to which
+        modified fields are applied
+        :type connection: Connection
+        :return: new Connection instance with updated fields
+        """
         old_connection_dict = {s: getattr(connection, s)
                                for s in cls.__slots__}
         modified_fields_dict = {k: v for k, v in modified_fields.items()
