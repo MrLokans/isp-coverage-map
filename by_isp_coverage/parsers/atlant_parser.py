@@ -1,5 +1,7 @@
 import logging
 
+import time
+
 import requests
 from bs4 import BeautifulSoup as bs
 
@@ -75,6 +77,7 @@ class AtlantParser(BaseParser):
         for u in urls:
             try:
                 r = requests.get(u)
+                time.sleep(0.1)
                 results.append(r)
             except Exception:
                 logger.exception("Error retrieving url {}".format(u))
