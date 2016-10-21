@@ -6,4 +6,4 @@ from .parsers.unet_parser import UNETParser
 
 from .csv_exporter import CSV_Exporter
 
-__version__ = "0.4.7"
+__version__ = "0.4.8"
